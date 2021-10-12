@@ -1,7 +1,7 @@
 # These site-dependent items should be defined in environment:
 
 # CXX = g++-6 -fopenmp
-# CXXFLAGS
+CXXFLAGS = -std=c++11 -fPIC
 
 # TMV_DIR
 # CFITSIO_DIR
@@ -121,6 +121,7 @@ SUBDIR = src/subs
 INCLUDEDIR = include
 TESTDIR = tests
 TESTBINDIR = testbin
+TARGET_LIB = libgbdes.so
 
 # INCLUDES can be relative paths, and will not be exported to subdirectory makes.
 INCLUDES += -I $(INCLUDEDIR)
@@ -129,6 +130,11 @@ INCLUDES += -I $(INCLUDEDIR)
 EXECS :=  $(wildcard $(SRCDIR)/*.cpp)
 TARGETS := $(EXECS:$(SRCDIR)/%.cpp=$(BINDIR)/%)
 OBJS := $(EXECS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+SHARED := $(EXECS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.so)
+LIB_SRCS := src/WCSFit.cpp
+LIB_OBJS = $(SRCS:.cpp=$(OBJDIR)/.o)
+#SHARED := $(EXECS:$(SRCDIR)/%.cpp=$(OBJDIR)/gbdes.so
+#SHARED := $(OBJDIR)/gbdes.so
 
 # Python executables
 PYEXECS :=  $(wildcard $(SRCDIR)/*.py)
@@ -146,9 +152,27 @@ RM = /bin/rm -f
 
 all: cpp python
 
-cpp: exts $(TARGETS)
+cpp: exts $(TARGETS) $(SHARED)
+#cpp: exts $(TARGETS)
 
-python: $(PYTARGETS)
+python_build: $(PYTARGETS)
+
+CFLAGS = \
+	-std=c++1y \
+	-Wall \
+	-O3
+#SRC_DIR := src
+#SRCS = model.hpp #$(wildcard $(SRC_DIR)/*.cpp)
+#OBJS = model.o #$(subst .cpp,.o, $(SRCS))
+PYTHON3 := $(if $(PYTHON3),$(PYTHON3),python3)
+#generate_pybind: 
+#	$(CXX) -shared $(CFLAGS) -fPIC `$(PYTHON3) -m pybind11 --includes` \
+#		pydir/wcsfit.cpp $(INCLUDES) -o gbdes_py`$(PYTHON3)-config --extension-suffix`
+generate_pybind:  
+	$(CXX) -shared $(CFLAGS) -fPIC `$(PYTHON3) -m pybind11 --includes` \
+		pydir/wcsfit.cpp $(INCLUDES) $(LIBS) -o gbdes`$(PYTHON3)-config --extension-suffix` 
+
+
 
 # No setup.py to do here ... python ./setup.py install
 
@@ -162,6 +186,10 @@ $(SUBOBJS): $(OBJDIR)/%.o : $(SUBDIR)/%.cpp
 # Linking
 $(TARGETS): $(BINDIR)/% : $(OBJDIR)/%.o $(SUBOBJS) $(EXTOBJS)
 	$(CXX) $(CXXFLAGS) $^  $(LIBS) -o $@
+
+$(SHARED): $(OBJDIR)/%.so : $(SUBOBJS) $(EXTOBJS)
+	$(CXX) -shared -fPIC -o $(OBJDIR)/libgbdes.so $(SUBOBJS) $(EXTOBJS)
+
 
 # Python executables - copy into bin directory
 $(PYTARGETS): $(BINDIR)/% : $(SRCDIR)/%
@@ -210,7 +238,7 @@ clean: local-clean
 	for dir in $(EXTDIRS); do (cd $$dir && $(MAKE) clean); done
 
 local-clean:
-	rm -rf $(OBJDIR)/*.o $(BINDIR)/* $(TESTBINDIR)/* *~ *.dvi *.aux core .depend
+	rm -rf $(OBJDIR)/*.o $(OBJDIR)/*.so $(BINDIR)/* $(TESTBINDIR)/* *~ *.dvi *.aux core .depend
 
 ifeq (.depend, $(wildcard .depend))
 include .depend

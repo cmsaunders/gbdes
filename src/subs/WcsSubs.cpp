@@ -25,6 +25,7 @@ fitDefaulted(PixelMapCollection& pmc,
   for (auto extnptr : extensions) {
     auto pm = pmc.cloneMap(extnptr->mapName);
     pmcFit.learnMap(*pm);
+    cerr << "learning map " << extnptr->mapName << endl;
     delete pm;
   }
 
@@ -35,10 +36,12 @@ fitDefaulted(PixelMapCollection& pmc,
   for (auto mapname : pmcFit.allMapNames()) {
     if (!pmc.isAtomic(mapname))
       continue;
-    if (pmc.getDefaulted(mapname))
+    if (pmc.getDefaulted(mapname)) {
       defaultedAtoms.insert(mapname);
-    else
+    }
+    else {
       fixAtoms.insert(mapname);
+    }
   }
   // We are done if nothing is defaults
   if (defaultedAtoms.empty())
@@ -55,7 +58,6 @@ fitDefaulted(PixelMapCollection& pmc,
   pmcFit.rebuildParameterVector();
 
   auto identityMap = pmcFit.issueMap(IdentityMap().getName());
-      
   // Make Matches at a grid of points on each extension's device,
   // matching pix coords to the coordinates derived from startWCS.
   MCat matches;
@@ -64,13 +66,16 @@ fitDefaulted(PixelMapCollection& pmc,
     // Get projection used for this extension, and set up
     // startWCS to reproject into this system.
     extnptr->startWcs->reprojectTo(*expo.projection);
-
     // Get a realization of the extension's map
     auto map = pmcFit.issueMap(extnptr->mapName);
     
     // Get the boundaries of the device it uses
     Bounds<double> b=instruments[expo.instrument]->domains[extnptr->device];
-
+    cerr << "inst dev: " << expo.instrument << " "  << extnptr->device << endl;
+    cerr << "bounds: " << b.getXMin() << " " << b.getXMax() << endl;
+    double txw, tyw;
+    extnptr->startWcs->toWorld(b.getXMin(), b.getYMin(), txw, tyw);
+    cerr << "check p1 " << txw << " " << tyw << endl;
     // Generate a grid of matched Detections
     const int nGridPoints=512;	// Number of test points for map initialization
 
@@ -85,6 +90,7 @@ fitDefaulted(PixelMapCollection& pmc,
     vector<int> vx(nGridPoints);
     for (int i=0; i<vx.size(); i++) vx[i]=i;
     vector<int> vy = vx;
+    std::srand(123);
     std::random_shuffle(vy.begin(), vy.end());
     double xstep = (b.getXMax()-b.getXMin())/nGridPoints;
     double ystep = (b.getYMax()-b.getYMin())/nGridPoints;
@@ -95,6 +101,9 @@ fitDefaulted(PixelMapCollection& pmc,
       extnptr->startWcs->toWorld(xpix, ypix, xw, yw); // startWCS has no color!
       Detection* dfit = new Detection;
       Detection* dref = new Detection;
+      if (i == 10) {
+        cerr << "pix check " << xpix << " " << ypix << " " << xw << " " << yw << endl;
+      }
       dfit->xpix = xpix;
       dfit->ypix = ypix;
       dref->xpix = xw;

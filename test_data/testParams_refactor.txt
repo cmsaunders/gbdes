@@ -1,0 +1,6 @@
+inputMaps=/home/csaunder/stack_projects/gbdes_tests/polyExposure.astro
+freePM = F
+reserveFraction = 0.2
+outCatalog = wcscat_refactor_cpp.fits
+outWcs = wcsfit_refactor_cpp.wcs
+starCatalog = starcat_refactor_cpp.fits

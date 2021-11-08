@@ -9,13 +9,17 @@ MapDegeneracies<S>::MapDegeneracies(const vector<typename S::Extension*>& extens
 				    bool defaulted):    extensions(extensions_) {
 
   // Get all map names meeting criteria
+  cerr << "mapColl names length: " << to_string(mapCollection.allMapNames().size()) << endl;
   for (auto mapname : mapCollection.allMapNames()) {
     // Skip fixed maps
-    if (mapCollection.getFixed(mapname))
+    if (mapCollection.getFixed(mapname)) {
+        cerr << "map fixed " << " " << mapname << endl;
 	continue; 
+    }
     // Skip non-defaulted if we only want defaulted maps:
-    if (defaulted && !mapCollection.getDefaulted(mapname))
+    if (defaulted && !mapCollection.getDefaulted(mapname)) {
       continue;
+    }
 
     auto m = mapCollection.cloneMap(mapname);
     if (mapTypes.count(m->getType()))
@@ -57,9 +61,10 @@ template <class S>
 set<int>
 MapDegeneracies<S>::findNondegenerate() const {
   set<int> out;
-  for (auto& m : extns)
+  for (auto& m : extns){
     if (m.second.size()==1)
       out.insert(m.first);
+  }
   return out;
 }
 
@@ -122,10 +127,11 @@ template <class S>
 list<set<int>>
 MapDegeneracies<S>::initializationOrder() {
   list<set<int>> out;
+  cerr << "Are maps empty? " << to_string(maps.empty()) << endl;
   while (!maps.empty()) {
     auto goodextns = findNondegenerate();
-    //**/cerr << ".." << maps.size() << " maps, " << goodextns.size() << " clean extns"
-    //     << endl;
+    cerr << ".." << to_string(maps.size()) << " maps, " << to_string(goodextns.size()) << " clean extns"
+         << endl;
     if (goodextns.empty()) {
       // We have maps with no clear degeneracy breaking path.
       cerr << "ERROR: no path to initialize these maps without degeneracies:" << endl;
@@ -166,10 +172,14 @@ MapDegeneracies<S>::initializationOrder() {
 	  maxExpo = m2.first;
 	}
       }
-      /**cerr << "...Do map " << m.first 
+      cerr << "...Do map " << m.first 
 	       << " from exposure " << maxExpo
-	       << " with " << maxCount << " exposures" << endl; /**/
+	       << " with " << to_string(maxCount) << " exposures" << endl; /**/
       out.push_back(m.second[maxExpo]);
+      for (auto s : m.second[maxExpo]) {
+        cerr << s << " " ;
+      }
+      cerr << endl;
       eraseMap(m.first);
     }
   }

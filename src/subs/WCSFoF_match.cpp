@@ -344,7 +344,7 @@ void FoFClass::sortMatches(int fieldNumber){//, vector<int> sequence, vector<lon
     //vector<int> sequence;
     //vector<long> extn;
     //vector<long> obj;
-    sequence.push_back(4);
+    
     //  loop over affinities per field
     for (Field::CatMap::iterator iAffinity=fields[fieldNumber]->catalogs.begin();
           iAffinity != fields[fieldNumber]->catalogs.end();
@@ -355,7 +355,7 @@ void FoFClass::sortMatches(int fieldNumber){//, vector<int> sequence, vector<lon
             << " affinity " << iAffinity->first
             << " with " << pcat->size() << " matches "
             << endl;
-      sequence.push_back(1);
+      
       if (pcat->empty()) continue;
 
       //vector<int> sequence;
@@ -367,7 +367,7 @@ void FoFClass::sortMatches(int fieldNumber){//, vector<int> sequence, vector<lon
             j != pcat->end();
             ++j) {
         // Skip any Match that is below minimum match size
-        sequence.push_back(2);
+        
         if ((*j)->size() < minMatches) continue;
         bool selfMatch = false;
         if (!allowSelfMatches) {
@@ -380,7 +380,7 @@ void FoFClass::sortMatches(int fieldNumber){//, vector<int> sequence, vector<lon
         break;
             }
         }
-        sequence.push_back(3);
+        
         if (selfMatch) continue;
 
         // Add elements of this match to the output vectors
@@ -395,12 +395,12 @@ void FoFClass::sortMatches(int fieldNumber){//, vector<int> sequence, vector<lon
           obj.push_back((*k)->objectNumber);
         }
       } // end match loop
-      sequence.push_back(8);
+      
       cerr << "...Kept " << matches << " matches with " << sequence.size()
             << " points." << endl;
       pointCount += sequence.size();
     } // end Affinity loop
-    sequence.push_back(9);
+    
     cerr << "Total of " << matchCount
       << " matches with " << pointCount
       << " points." << endl;

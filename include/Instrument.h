@@ -92,8 +92,40 @@ public:
   bool needsColor;	// Save info on whether map requires color information.
 
   std::map<long, T2*> keepers; // The objects from this Extension catalog that we will use
+  void addWcs(string wcsin) {
+    istringstream iss(wcsin);
+    astrometry::PixelMapCollection pmcTemp;
+    if (!pmcTemp.read(iss)) {
+      cerr << "Could not deserialize starting WCS" << endl;
+      exit(1);
+    }
+    string wcsName = pmcTemp.allWcsNames().front();
+    startWcs = pmcTemp.cloneWcs(wcsName);
+  }
   ~ExtensionBase() {
     if (startWcs) delete startWcs;
+  }
+};
+
+class SPExtension {
+public:
+  SPExtension(): wcs(nullptr), startWcs(nullptr), needsColor(false) {}
+  int exposure;
+  int device;
+  double airmass;      // airmass and apcorr used for nightly priors
+  double apcorr;
+  double magshift;	// Additive adjustment to all incoming mags (exposure time)
+
+  string wcsName;      // Name of final WCS (and map into field coordinates)
+  string mapName;      // Name of photometry map or astrometric map into exposure coords
+  //shared_ptr<astrometry::SubMap> map;	       // The map from pixel coordinates to field coordinates.
+  shared_ptr<astrometry::Wcs> wcs;       // Wcs from pixel coordinates to sky coordinates = basemap + field projection
+  shared_ptr<astrometry::Wcs> startWcs;  // Input Wcs for this extension (owned by this class)
+  bool needsColor;	// Save info on whether map requires color information.
+
+  //std::map<long, T2*> keepers; // The objects from this Extension catalog that we will use
+  ~SPExtension() {
+    //if (startWcs) delete startWcs;
   }
 };
 

@@ -1,0 +1,35 @@
+# Specification for the final astrometric model,
+# with chromatic terms stripped out,
+# for a single epoch of star flats
+EXPOSURE/DEVICE/base:
+  Type: Composite
+  Elements: [INSTRUMENT/DEVICE, EXPOSURE]
+EXPOSURE:
+  Type: Poly
+  XPoly:
+    OrderX: 6
+    SumOrder: true
+  YPoly:
+    OrderX: 6
+    SumOrder: true
+INSTRUMENT/DEVICE:
+  Type: Composite
+  Elements:
+#    - BAND/DEVICE/rings
+#    - BAND/DEVICE/lowedge
+#    - BAND/DEVICE/highedge
+    - BAND/DEVICE/poly
+BAND/DEVICE/poly:
+  Type: Poly
+  XPoly:
+    OrderX: 4
+    SumOrder: true
+  YPoly:
+    OrderX: 4
+    SumOrder: true
+  XMin: 0
+  XMax: 2048
+  YMin: 0
+  YMax: 4096
+# The components of above will be read from allsf.guts.astro,
+

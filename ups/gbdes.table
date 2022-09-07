@@ -1,1 +1,3 @@
+setupRequired(sconsUtils)
+
 envPrepend(PYTHONPATH, ${PRODUCT_DIR}/build/pydir)

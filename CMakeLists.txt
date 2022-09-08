@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_library(CFITSIO cfitsio REQUIRED)
-include_directories(${CFITSIO_INCLUDES})
 
 find_package(YAML-CPP REQUIRED)
 add_compile_definitions(USE_YAML=TRUE)

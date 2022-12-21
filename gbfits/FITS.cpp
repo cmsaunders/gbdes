@@ -18,7 +18,7 @@ FITS::throw_CFITSIO(const string m1) {
   while (fits_read_errmsg(ebuff)) {m+= "\n\t"; m+=ebuff;}
   // Do not throw if we are already unwinding stack from
   // another thrown exception:
-  if (std::uncaught_exception()) {
+  if (std::uncaught_exceptions() > 0) {
     cerr << "During exception processing: " << m << endl;
   } else {
     throw FITSError(m);
@@ -30,7 +30,7 @@ FITS::throw_CFITSIO(const string m1) {
 // But be careful, does not interrupt control flow!!!
 void
 FITS::throwFitsOrDump(const string err) {
-  if (std::uncaught_exception())
+  if (std::uncaught_exceptions() > 0)
     cerr << "During exception processing: " << err << endl;
   else
     throw FITSError(err);
@@ -199,7 +199,7 @@ FitsioHandle::closeFile() const {
   cerr << "fits_close_file " << filename << endl;
 #endif
   fits_close_file(fitsptr, &status);
-  if (status && !std::uncaught_exception()) 
+  if (status && (std::uncaught_exceptions() > 0)) 
   if (status) throw_CFITSIO("closeFile() on " 
 			    + getFilename());
   fitsptr = 0;

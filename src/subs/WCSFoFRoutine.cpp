@@ -234,7 +234,10 @@ void FoFClass::addCatalog(const astrometry::Wcs &wcs, std::string thisAffinity, 
     PointCat &galaxyCatalog = (stringstuff::nocaseEqual(stellarAffinity, thisAffinity)
                                        ? starCatalog
                                        : fields[fieldNumber]->catalogFor(thisAffinity));
-
+    // test forcing failure:
+    if (iextn > -1) {
+        throw std::runtime_error("Forcing failure");
+    }
     // Now loops over objects in the catalog
     for (int iObj = 0; iObj < vx.size(); iObj++) {
         double xpix = vx[iObj];

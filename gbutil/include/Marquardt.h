@@ -133,7 +133,7 @@ P
 Marquardt<T,P>::fit(Vector& a, int maxIter, bool progressToCerr) {
   P lambda;
   int nparam = a.size();
-
+  throw NoConverge("Test failure");
   Stopwatch timer;
 
   // These are used temporarily during fit():

@@ -303,7 +303,8 @@ Marquardt<T,P>::fit(Vector& a, int maxIter, bool progressToCerr) {
   delete alpha;
   delete beta;
   if (bestBeta) delete bestBeta;
-  throw NoConverge("Too many iterations");
+  throw std::runtime_error("Marquardt did not converge; test failure")
+  //throw NoConverge("Too many iterations");
 }
 
 template <class T, class P>

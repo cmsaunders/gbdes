@@ -1197,7 +1197,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
             for (int i = 0; i < N; i++) {
                 if (alpha(i, i) < 0.) {
                     cerr << "Negative alpha diagonal " << alpha(i, i) << " at " << i << endl;
-                    exit(1);
+                    throw AstrometryError("Negative alpha diagonal!");
                 }
                 if (alpha(i, i) > 0.) ss[i] = 1. / sqrt(alpha(i, i));
                 // Scale row / col of lower triangle, hitting diagonal twice
@@ -1242,7 +1242,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
             cerr << "Caught exception during Cholesky" << endl;
             if (inPlace) {
                 cerr << "Cannot describe degeneracies while dividing in place" << endl;
-                exit(1);
+                throw AstrometryError("Cannot describe degeneracies while dividing in place.");
             }
             int N = alpha.cols();
             set<int> degen;
@@ -1308,7 +1308,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
                          << j - startIndex << " of " << nParams << endl;
                 }
             }
-            exit(1);
+            throw AstrometryError("Cholesky failure.");
         }
 
         // Now attempt Newton iterations to solution, with fixed alpha

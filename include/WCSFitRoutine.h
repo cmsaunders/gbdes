@@ -89,6 +89,8 @@ public:
     Astro::StarCatalog getStarCatalog();
 
     void saveResults(std::string outWcs, std::string outCatalog, std::string starCatalog);
+
+    astrometry::DMatrix getModelCovariance();
 };
 
 #endif

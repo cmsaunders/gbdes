@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <astshim.h>
 
 #include "FitSubroutines.h"
 #include "Instrument.h"

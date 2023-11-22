@@ -353,7 +353,8 @@ ConstantMap::create(const YAML::Node& node,
 
 PixelMap*
 ASTMap::duplicate() const {
-  return new ASTMap(*this);
+  std::shared_ptr<ast::Mapping> newMapping = mapping.copy();
+  return new ASTMap(*newMapping);
 }
 
 void 

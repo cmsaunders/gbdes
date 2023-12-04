@@ -381,7 +381,7 @@ void WCSFit::setObjects(int i, const map<std::string, std::vector<double>> &tabl
 
 void WCSFit::fit(double maxError, int minFitExposures, double reserveFraction, int randomNumberSeed,
                  double minimumImprovement, double clipThresh, double chisqTolerance, bool clipEntireMatch,
-                 bool divideInPlace, bool purgeOutput, double minColor, double maxColor) {
+                 bool divideInPlace, bool purgeOutput, double minColor, double maxColor, bool calcSVD) {
     
     PROGRESS(2, Purging defective detections and matches);
 
@@ -466,7 +466,7 @@ void WCSFit::fit(double maxError, int minFitExposures, double reserveFraction, i
         }
 
         // Do the fit here!!
-        double chisq = ca.fitOnce(verbose >= 1, divideInPlace);  // save space if selected
+        double chisq = ca.fitOnce(verbose >= 1, divideInPlace, calcSVD);  // save space if selected
         // Note that fitOnce() remaps *all* the matches, including reserved ones.
         double max;
         int dof;

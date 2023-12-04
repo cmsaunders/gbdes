@@ -1168,7 +1168,7 @@ void CoordAlign::operator()(const DVector &p, double &chisq, DVector &beta, DMat
     }  // End degenerate parameter check
 }
 
-double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
+double CoordAlign::fitOnce(bool reportToCerr, bool inPlace, bool calcSVD) {
     DVector p = getParams();
     // First will try doing Newton iterations, keeping a fixed Hessian.
     // If it increases chisq or takes too long to converge, we will
@@ -1240,75 +1240,77 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
         // SVD, which is what we want anyway to find the non-pos-def values
 
         if (choleskyFails) {
-            cerr << "Caught exception during Cholesky" << endl;
-            if (inPlace) {
-                throw std::runtime_error("Cannot describe degeneracies while dividing in place");
-            }
-            int N = alpha.cols();
-            set<int> degen;
-            DMatrix U(N, N);
-            DVector S(N);
+            if (calcSVD) {
+                if (inPlace) {
+                    throw std::runtime_error("Cannot describe degeneracies while dividing in place");
+                }
+                int N = alpha.cols();
+                set<int> degen;
+                DMatrix U(N, N);
+                DVector S(N);
 
-#ifdef USE_TMV
-            tmv::Eigen(symAlpha, U, S);
-#elif defined USE_EIGEN
-            {
-                Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig(alpha);
-                U = eig.eigenvectors();
-                S = eig.eigenvalues();
-            }
-#endif
-            // Both packages promise to return eigenvalues in increasing
-            // order, but let's not depend on that.  Report largest/smallest
-            // abs values of eval's, and print them all
-            int imax = S.size() - 1;  // index of largest, smallest eval
-            double smax = abs(S[imax]);
-            int imin = 0;
-            double smin = abs(S[imin]);
-            for (int i = 0; i < U.cols(); i++) {
-                cerr << i << " Eval: " << S[i] << endl;
-                double s = abs(S[i]);
-                if (s > smax) {
-                    smax = s;
-                    imax = i;
+    #ifdef USE_TMV
+                tmv::Eigen(symAlpha, U, S);
+    #elif defined USE_EIGEN
+                {
+                    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig(alpha);
+                    U = eig.eigenvectors();
+                    S = eig.eigenvalues();
                 }
-                if (s < smin) {
-                    smin = s;
-                    imin = i;
-                }
-                if (S[i] < 1e-6) degen.insert(i);
-            }
-            cerr << "Largest abs(eval): " << smax << endl;
-            cerr << "Smallest abs(eval): " << smin << endl;
-            degen.insert(imin);
-            // Find biggest contributors to non-positive (or marginal) eigenvectors
-            const int ntop = MIN(N, 20);
-            for (int isv : degen) {
-                cerr << "--->Eigenvector " << isv << " eigenvalue " << S(isv) << endl;
-                // Find smallest abs coefficient
+    #endif
+                // Both packages promise to return eigenvalues in increasing
+                // order, but let's not depend on that.  Report largest/smallest
+                // abs values of eval's, and print them all
+                int imax = S.size() - 1;  // index of largest, smallest eval
+                double smax = abs(S[imax]);
                 int imin = 0;
-                for (int i = 0; i < U.rows(); i++)
-                    if (abs(U(i, isv)) < abs(U(imin, isv))) imin = i;
-                vector<int> top(ntop, imin);
-                for (int i = 0; i < U.rows(); i++) {
-                    for (int j = 0; j < ntop; j++) {
-                        if (abs(U(i, isv)) >= abs(U(top[j], isv))) {
-                            // Push smaller entries to right
-                            for (int k = ntop - 1; k > j; k--) top[k] = top[k - 1];
-                            top[j] = i;
-                            break;
+                double smin = abs(S[imin]);
+                for (int i = 0; i < U.cols(); i++) {
+                    cerr << i << " Eval: " << S[i] << endl;
+                    double s = abs(S[i]);
+                    if (s > smax) {
+                        smax = s;
+                        imax = i;
+                    }
+                    if (s < smin) {
+                        smin = s;
+                        imin = i;
+                    }
+                    if (S[i] < 1e-6) degen.insert(i);
+                }
+                cerr << "Largest abs(eval): " << smax << endl;
+                cerr << "Smallest abs(eval): " << smin << endl;
+                degen.insert(imin);
+                // Find biggest contributors to non-positive (or marginal) eigenvectors
+                const int ntop = MIN(N, 20);
+                for (int isv : degen) {
+                    cerr << "--->Eigenvector " << isv << " eigenvalue " << S(isv) << endl;
+                    // Find smallest abs coefficient
+                    int imin = 0;
+                    for (int i = 0; i < U.rows(); i++)
+                        if (abs(U(i, isv)) < abs(U(imin, isv))) imin = i;
+                    vector<int> top(ntop, imin);
+                    for (int i = 0; i < U.rows(); i++) {
+                        for (int j = 0; j < ntop; j++) {
+                            if (abs(U(i, isv)) >= abs(U(top[j], isv))) {
+                                // Push smaller entries to right
+                                for (int k = ntop - 1; k > j; k--) top[k] = top[k - 1];
+                                top[j] = i;
+                                break;
+                            }
                         }
                     }
-                }
-                for (int j : top) {
-                    string badAtom = pmc.atomHavingParameter(j);
-                    int startIndex, nParams;
-                    pmc.parameterIndicesOf(badAtom, startIndex, nParams);
-                    cerr << "Coefficient " << U(j, isv) << " at parameter " << j << " Map " << badAtom << " "
-                         << j - startIndex << " of " << nParams << endl;
+                    for (int j : top) {
+                        string badAtom = pmc.atomHavingParameter(j);
+                        int startIndex, nParams;
+                        pmc.parameterIndicesOf(badAtom, startIndex, nParams);
+                        cerr << "Coefficient " << U(j, isv) << " at parameter " << j << " Map " << badAtom << " "
+                            << j - startIndex << " of " << nParams << endl;
+                    }
                 }
             }
-            throw std::runtime_error("Cholesky decomposition failed");
+            throw std::runtime_error("Cholesky decomposition failed, likely because data is not sufficient"
+                                     " to constrain the model");
         }
 
         // Now attempt Newton iterations to solution, with fixed alpha

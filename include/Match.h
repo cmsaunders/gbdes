@@ -325,8 +325,11 @@ public:
     // Re-map Detections using current params - either all or just those being fit.
     void remap(bool doAll = true);
     // Fitting routine: returns chisq of current fit, updates params. and remaps.
+    // If Cholesky decomposition fails and doSVD=true, do singular value decomposition to report nature of
+    // degeneracies.
     double fitOnce(bool reportToCerr = true,
-                   bool inPlace = false);  // Set inPlace to save space, but can't debug singularities
+                   bool inPlace = false,  // Set inPlace to save space, but can't debug singularities
+                   bool doSVD = false);  
     // Conduct one round of sigma-clipping.  If doReserved=true,
     // then only clip reserved Matches.  If =false, then
     // only clip non-reserved Matches.

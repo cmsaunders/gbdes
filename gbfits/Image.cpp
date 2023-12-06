@@ -157,7 +157,7 @@ ImageData<T>::unlinkChild(ImageData<T>* child) const {
   {
     typename list<ImageData<T>*>::iterator cptr =
       find(children.begin(), children.end(), child);
-    if (cptr==children.end() && !uncaught_exception()) 
+    if (cptr==children.end() && !std::uncaught_exceptions())
       throw ImageError("ImageData::unlinkChild cannot find the child");
     children.erase(cptr);
   }

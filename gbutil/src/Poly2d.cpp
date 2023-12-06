@@ -219,6 +219,7 @@ Poly2d::vectorIndex(int i, int j) const {
     return i*(orderY+1) + j;
   default: 
     FormatAndThrow<Poly2dError>() << "Bad OrderType in vectorIndex " << otype;
+    return -1;
   }
 }
 

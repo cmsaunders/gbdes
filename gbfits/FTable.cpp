@@ -6,25 +6,25 @@ using namespace img;
 
 void 
 FTable::filter(long rowStart, long rowEnd,
-	       const vector<string>& regexps) {
+	       const std::vector<std::string>& regexps) {
   D->filter(D, rowStart, rowEnd, regexps);
 }
 
 void 
-FTable::filterRows(vector<bool>& vb) {
+FTable::filterRows(std::vector<bool>& vb) {
   D->filterRows(D, vb);
 }
 
 void 
 FTable::filterRows(const string& expression) {
-  vector<bool> vb;
+    std::vector<bool> vb;
   D->evaluate(vb, expression, H);
   D->filterRows(D, vb);
 }
 
 FTable
 FTable::extract(long rowStart, long rowEnd,
-		const vector<string>& regexps) const {
+		const std::vector<string>& regexps) const {
   FTable result;
   D->filter(result.D, rowStart, rowEnd, regexps);
   result.D->clearChanged();
@@ -33,7 +33,7 @@ FTable::extract(long rowStart, long rowEnd,
 }
 
 FTable
-FTable::extractRows(vector<bool>& vb) const {
+FTable::extractRows(std::vector<bool>& vb) const {
   FTable result;
   D->filterRows(result.D, vb);
   result.D->clearChanged();
@@ -44,7 +44,7 @@ FTable::extractRows(vector<bool>& vb) const {
 FTable
 FTable::extractRows(const string& expression) const {
   FTable result;
-  vector<bool> vb;
+  std::vector<bool> vb;
   D->evaluate(vb, expression, H);
   D->filterRows(result.D, vb);
   result.D->clearChanged();
@@ -82,9 +82,9 @@ TableData::copyFrom(const TableData& rhs) {
   }
 }      
 
-vector<string> 
+std::vector<string>
 TableData::listColumns() const {
-  vector<string> out;
+  std::vector<string> out;
   for (const_iterator i = begin();
        i != end();
        ++i) 
@@ -195,7 +195,7 @@ TableData::add(ColumnBase* newColumn) {
 
 TableData*
 TableData::extract(long rowStart, long rowEnd,
-		   const vector<string>& regexps) const {
+		   const std::vector<string>& regexps) const {
   if (rowEnd < 0) rowEnd = nrows();
   if (rowEnd < rowStart) 
     throw FTableError("TableData::extract() with rowEnd < rowStart");
@@ -206,7 +206,7 @@ TableData::extract(long rowStart, long rowEnd,
 
 void
 TableData::filter(TableData* td, long rowStart, long rowEnd,
-		  const vector<string>& regexps) const {
+		  const std::vector<string>& regexps) const {
   if (rowEnd < 0) rowEnd = nrows();
   // rowStart and rowEnd checked before entry here.
   td->checkLock("filter()");
@@ -219,10 +219,10 @@ TableData::filter(TableData* td, long rowStart, long rowEnd,
   // Tell destination table the size that all columns will end up with:
   td->rowCount = rowEnd - rowStart;
 
-  vector<string> allColumns = listColumns();
-  set<string> getThese = stringstuff::findMatches(regexps, allColumns);
+  std::vector<string> allColumns = listColumns();
+  std::set<string> getThese = stringstuff::findMatches(regexps, allColumns);
 
-  for (vector<string>::iterator i = allColumns.begin();
+  for (std::vector<string>::iterator i = allColumns.begin();
        i != allColumns.end();
        ++i) {
     bool keeper = getThese.find(*i) != getThese.end();
@@ -238,10 +238,10 @@ TableData::filter(TableData* td, long rowStart, long rowEnd,
 }
 
 void
-TableData::filterRows(TableData* td, vector<bool>& vb) const {
+TableData::filterRows(TableData* td, std::vector<bool>& vb) const {
   td->checkLock("filter()");
   // Get set of all columns for output:
-  vector<string> allColumns = listColumns();
+  std::vector<string> allColumns = listColumns();
 
   bool writeSelf = (this==td);
   if (!writeSelf) td->clear();
@@ -255,7 +255,7 @@ TableData::filterRows(TableData* td, vector<bool>& vb) const {
   // Tell destination table the size that all columns will end up with:
   td->rowCount = outRows;
 
-  for (vector<string>::iterator i = allColumns.begin();
+  for (std::vector<string>::iterator i = allColumns.begin();
        i != allColumns.end();
        ++i) {
     ColumnBase* shorter = (*this)[*i]->copyRows(vb, outRows);

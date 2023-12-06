@@ -54,7 +54,7 @@ FitsTable::use() {
 class FindColumnsToken: public expressions::Token {
 public:
   FindColumnsToken(const Header* hptr_): hptr(hptr_) {}
-  const set<string>& columnNames() const {return columns;}
+  const std::set<string>& columnNames() const {return columns;}
   virtual expressions::Token* createFromString(const std::string& input,
 					      size_t& begin, size_t& end,
 					      bool lastTokenWasOperator) const {
@@ -91,7 +91,7 @@ FitsTable::extract(const string& expression,
 		   const std::vector<std::string>& colMatches) const { 
   img::TableData* tdata = new TableData();
   if (dptr) {
-    vector<bool> vb;
+      std::vector<bool> vb;
     dptr->evaluate(vb, expression, header());
     dptr->filterRows(tdata, vb);
   } else {
@@ -108,15 +108,15 @@ FitsTable::extract(const string& expression,
       delete *i; // ??? Need to do better...
 
     // Read from file all desired columns plus those needed for filtering
-    const set<string>& forFiltering = tokenReader.columnNames();
-    vector<string> augmented = colMatches;
-    for ( set<string>::const_iterator i = forFiltering.begin();
+    const std::set<string>& forFiltering = tokenReader.columnNames();
+      std::vector<string> augmented = colMatches;
+    for ( std::set<string>::const_iterator i = forFiltering.begin();
 	  i != forFiltering.end();
 	  ++i)
       augmented.push_back(*i);
 
     TableData* tdata2 = loadData(0, -1, augmented);
-    vector<bool> vb;
+    std::vector<bool> vb;
     tdata2->evaluate(vb, expression, header());
     tdata2->filterRows(tdata, vb);
     delete tdata2;
@@ -208,12 +208,12 @@ TableData*
 FitsTable::loadData(long rowStart, long rowEnd, 
 		    const std::vector<std::string>& colMatches) const { 
     // FITS wants column numbers, not names, so try them all one by one
-  vector<string> allNames = listFitsColumns(); // index number is column number
-  vector<string> colNames;
-  vector<int> colNums;
+  std::vector<string> allNames = listFitsColumns(); // index number is column number
+  std::vector<std::string> colNames;
+  std::vector<int> colNums;
   for (int i=0; i<allNames.size(); i++) {
-    set<string> matchout = stringstuff::findMatches(colMatches,
-						    vector<string>(1,allNames[i]));
+      std::set<string> matchout = stringstuff::findMatches(colMatches,
+                                                           std::vector<string>(1,allNames[i]));
     if (!matchout.empty()) {
       colNames.push_back(allNames[i]);
       colNums.push_back(i);
@@ -235,8 +235,8 @@ FitsTable::loadData(long rowStart, long rowEnd,
 
 template <class T>
 void addEmptyColumn(img::TableData* tptr, string name, long repeat, long stringLength=-1) {
-  if (repeat<0 || repeat>1) tptr->addColumn(vector<vector<T> >(), name, repeat, stringLength);
-  else tptr->addColumn(vector<T>(), name, repeat, stringLength);
+  if (repeat<0 || repeat>1) tptr->addColumn(std::vector<std::vector<T> >(), name, repeat, stringLength);
+  else tptr->addColumn(std::vector<T>(), name, repeat, stringLength);
 }
 
 std::vector<std::string>
@@ -267,8 +267,8 @@ FitsTable::listFitsColumns() const {
 
 void
 FitsTable::createColumns(img::TableData* tptr, 
-			 const vector<string>& colNames,
-			 const vector<int>& colNumbers) const {
+			 const std::vector<string>& colNames,
+			 const std::vector<int>& colNumbers) const {
   int status=0;
   int datatype;
   long repeat, width;
@@ -339,10 +339,10 @@ FitsTable::createColumns(img::TableData* tptr,
       addEmptyColumn<double>(tptr, colNames[i], repeat);
       break;
     case FITS::Tcomplex:
-      addEmptyColumn<complex<float> >(tptr, colNames[i], repeat);
+      addEmptyColumn<std::complex<float> >(tptr, colNames[i], repeat);
       break;
     case FITS::Tdblcomplex:
-      addEmptyColumn<complex<double> >(tptr, colNames[i], repeat);
+      addEmptyColumn<std::complex<double> >(tptr, colNames[i], repeat);
       break;
     case FITS::Tstring:
       // Note that CFITSIO convention is that an array of fixed-length strings
@@ -371,8 +371,8 @@ FitsTable::createColumns(img::TableData* tptr,
 
 void 
 FitsTable::readFitsData(img::TableData* tptr, 
-			const vector<string>& names,
-			const vector<int>& numbers,
+			const std::vector<string>& names,
+			const std::vector<int>& numbers,
 			long rowStart,
 			long rowEnd) const {
 
@@ -430,10 +430,10 @@ FitsTable::readFitsData(img::TableData* tptr,
 	getFitsColumnData<double>(tptr, name, num, rowStart, rowCount);
 	break;
       case FITS::Tcomplex:
-	getFitsColumnData<complex<float> >(tptr, name, num, rowStart, rowCount);
+	getFitsColumnData<std::complex<float> >(tptr, name, num, rowStart, rowCount);
 	break;
       case FITS::Tdblcomplex:
-	getFitsColumnData<complex<double> >(tptr, name, num, rowStart, rowCount);
+	getFitsColumnData<std::complex<double> >(tptr, name, num, rowStart, rowCount);
 	break;
       default:
 	FormatAndThrow<FITSError>() << "Cannot convert data type " 
@@ -465,7 +465,7 @@ FitsTable::getFitsColumnData(img::TableData* tptr,
     // Branch for variable-length array: read row by row
     long nElements;
     long offset;
-    vector<T> data;
+    std::vector<T> data;
     for (int i=0; i<nRows; i++) {
       status = moveTo();
       // Note adding 1 to row numbers when FITS sees them, since CFITSIO is 1-indexed:
@@ -480,20 +480,20 @@ FitsTable::getFitsColumnData(img::TableData* tptr,
   } else if (repeat>1) {
     // Branch for fixed-length array - can read all rows at one time
     long nElements = repeat * nRows;
-    vector<T> data(nElements);
+    std::vector<T> data(nElements);
     status = moveTo();
     fits_read_col(fptr(), dtype, icol+1, 
 		  (LONGLONG) rowStart+1, (LONGLONG) 1, (LONGLONG) nElements,
 		  nullPtr, &data[0], &anyNulls, &status);
     checkCFITSIO(status, "Reading table vector column " + colName);
-    typename vector<T>::const_iterator inptr = data.begin();
+    typename std::vector<T>::const_iterator inptr = data.begin();
     for (int i=0; i<nRows; i++) {
-      tptr->writeCell(vector<T>(inptr, inptr+repeat), colName, rowStart+i);
+      tptr->writeCell(std::vector<T>(inptr, inptr+repeat), colName, rowStart+i);
       inptr += repeat;
     }
   } else {
     // branch for scalar column
-    vector<T> data(nRows);
+    std::vector<T> data(nRows);
     status = moveTo();
     fits_read_col(fptr(), dtype, icol+1, 
 		  (LONGLONG) rowStart+1, (LONGLONG) 1, (LONGLONG) nRows,
@@ -521,7 +521,7 @@ FitsTable::getFitsColumnData<bool>(img::TableData* tptr,
     // Branch for variable-length array: read row by row
     long nElements;
     long offset;
-    vector<char> data;
+    std::vector<char> data;
     for (int i=0; i<nRows; i++) {
       status = moveTo();
       // Note adding 1 to row numbers when FITS sees them, since CFITSIO is 1-indexed:
@@ -530,32 +530,32 @@ FitsTable::getFitsColumnData<bool>(img::TableData* tptr,
       fits_read_col(fptr(), dtype, icol+1, (LONGLONG) rowStart+1+i, (LONGLONG) 1, 
 		    (LONGLONG) nElements, nullPtr, &data[0], &anyNulls, &status);
       checkCFITSIO(status, "Reading table bool column " + colName);
-      tptr->writeCell(vector<bool>(data.begin(), data.end()), colName, rowStart+i);
+      tptr->writeCell(std::vector<bool>(data.begin(), data.end()), colName, rowStart+i);
     } // end row loop
   } else if (repeat>1) {
     // Branch for fixed-length array
     long nElements=repeat * nRows;
-    vector<char> data(nElements);
+    std::vector<char> data(nElements);
     status = moveTo();
     fits_read_col(fptr(), dtype, icol+1, 
 		  (LONGLONG) rowStart+1, (LONGLONG) 1, (LONGLONG) nElements,
 		  nullPtr, &data[0], &anyNulls, &status);
     checkCFITSIO(status, "Reading bool table vector column " + colName);
-    typename vector<char>::const_iterator inptr = data.begin();
+    typename std::vector<char>::const_iterator inptr = data.begin();
     for (int i=0; i<nRows; i++) {
-      tptr->writeCell(vector<bool>(inptr, inptr+repeat), colName, rowStart+i);
+      tptr->writeCell(std::vector<bool>(inptr, inptr+repeat), colName, rowStart+i);
       inptr += repeat;
     }
   } else {
     // branch for scalar column
-    vector<char> data(nRows);
+      std::vector<char> data(nRows);
     status = moveTo();
     fits_read_col(fptr(), dtype, icol+1, 
 		  (LONGLONG) rowStart+1, (LONGLONG) 1, (LONGLONG) nRows,
 		  nullPtr, &data[0], &anyNulls, &status);
     checkCFITSIO(status, "Reading bool table column " + colName);
     // Convert to a bool vector
-    vector<bool> booldata(data.begin(), data.end());
+    std::vector<bool> booldata(data.begin(), data.end());
     tptr->writeCells(booldata, colName, rowStart);
   }
 }
@@ -608,7 +608,7 @@ FitsTable::getFitsColumnData<string>(img::TableData* tptr, string colName, int i
   } else {
     // Branch for fixed-length string per cell
     long nStrings= repeat * nRows;
-    vector<char*> data(nStrings);
+    std::vector<char*> data(nStrings);
     for (int i=0; i<nStrings; i++)
       data[i] = new char[length+1];
     status = moveTo();
@@ -620,7 +620,7 @@ FitsTable::getFitsColumnData<string>(img::TableData* tptr, string colName, int i
 
     if (repeat==1) {
       // One string per cell; make an array of them all
-      vector<string> vs(nRows);
+      std::vector<string> vs(nRows);
       for (int i=0; i<nRows; i++) {
 	// Make sure it's null terminated:
 	data[i][length]='\0';
@@ -630,7 +630,7 @@ FitsTable::getFitsColumnData<string>(img::TableData* tptr, string colName, int i
       tptr->writeCells(vs, colName, rowStart);
     } else {
       // Multiple strings per cell: write cells one at a time
-      vector<string> vs(repeat);
+      std::vector<std::string> vs(repeat);
       int iString = 0;
       for (int j=0; j<nRows; j++) {
 	for (int i=0; i<repeat; i++, iString++) {
@@ -655,8 +655,8 @@ FitsTable::writeFitsTableData(const img::TableData *tptr) {
   clearFitsTableData();
   long rowStart = 0;
   long rowEnd = tptr->nrows();
-  vector<string> colNames;
-  vector<int> colNums;
+    std::vector<string> colNames;
+    std::vector<int> colNums;
   addFitsColumns(tptr, colNames, colNums);
   // Now going to write out the contents to FITS, using recommended buffering row intervals.
   long bufferRows;
@@ -724,15 +724,15 @@ FitsTable::writeFitsTableData(const img::TableData *tptr) {
 				rowStart, rowStart+rowCount);
 	break;
       case Tcomplex:
-	writeFitsColumn<complex<float> >(tptr, colNames[iCol], colNums[iCol], 
+	writeFitsColumn<std::complex<float> >(tptr, colNames[iCol], colNums[iCol],
 					 rowStart, rowStart+rowCount);
 	break;
       case Tdblcomplex:
-	writeFitsColumn<complex<double> >(tptr, colNames[iCol], colNums[iCol], 
+	writeFitsColumn<std::complex<double> >(tptr, colNames[iCol], colNums[iCol],
 					  rowStart, rowStart+rowCount);
 	break;
       default:
-	ostringstream oss;
+    std::ostringstream oss;
 	oss << "Unknown DataType " << dt
 	    << " for writing data to FITS column";
 	throwFitsOrDump(oss.str());
@@ -742,8 +742,8 @@ FitsTable::writeFitsTableData(const img::TableData *tptr) {
 }
 
 void
-FitsTable::addFitsColumns(const img::TableData* tptr, 
-			  vector<string>& colNames, vector<int>& colNums) {
+FitsTable::addFitsColumns(const img::TableData* tptr,
+                          std::vector<string>& colNames, std::vector<int>& colNums) {
   checkWriteable("addFitsColumns()");
   int colNum;
   // Add these columns to end of any there:
@@ -764,7 +764,7 @@ FitsTable::addFitsColumns(const img::TableData* tptr,
     // loop over ft's columns:
     // First make the TFORM string
     long repeat = (*tptr)[colNames[i]]->repeat();
-    ostringstream oss;
+    std::ostringstream oss;
     if ( (*tptr)[colNames[i]]->elementType() == FITS::Tstring) {
       long length = (*tptr)[colNames[i]]->stringLength();
       if (length < 0) {
@@ -827,7 +827,7 @@ FitsTable::writeFitsColumn(const img::TableData *tptr,
   checkWriteable("writeFitsColumn()");
   int status=0;
   long repeat = (*tptr)[colName]->repeat();
-  vector<DT> data;
+  std::vector<DT> data;
   if (repeat==1) {
     // Scalar column, can write whole group at once
     tptr->readCells(data, colName, rowStart, rowEnd);
@@ -841,12 +841,12 @@ FitsTable::writeFitsColumn(const img::TableData *tptr,
       tptr->readCell(data, colName, iRow);
       if (repeat >=0) //**Assert(data.size()==repeat);
 	/**/if (data.size() != repeat) 
-	  /**/	  cerr << "Writing column " << colName << " to extension " << getName()
+	  /**/	  std::cerr << "Writing column " << colName << " to extension " << getName()
 	       << " of " << getFilename() 
 	       << " row " << iRow 
 	       << " data.size() " << data.size()
 	       << " repeat " << repeat
-	       << endl;
+	       << std::endl;
       status = moveTo();
       fits_write_col(fptr(), FITS::FITSTypeOf<DT>(), colNum+1, (LONGLONG) iRow+1,
 		     (LONGLONG) 1, (LONGLONG) data.size(), &data[0], &status);
@@ -864,7 +864,7 @@ FitsTable::writeFitsColumn<bool>(const img::TableData* tptr,
   checkWriteable("Attempt to write to read-only HDU in FITS file " + getFilename());
   int status=0;
   long repeat = (*tptr)[colName]->repeat();
-  vector<bool> data;
+  std::vector<bool> data;
   if (repeat==1) {
     // Scalar column, can write whole group at once
     tptr->readCells(data, colName, rowStart, rowEnd);
@@ -920,7 +920,7 @@ FitsTable::writeFitsColumn<string>(const img::TableData* tptr,
 	throwFitsOrDump("Cannot write column <" + colName + "> to FITS because"
 			" it has variable-length string arrays.");
       // Array cells, write 1 row at a time
-      vector<string> data;
+      std::vector<std::string> data;
       char* cdata[repeat];
       for (int iRow = rowStart; iRow < rowEnd; iRow++) {
 	tptr->readCell(data, colName, iRow);

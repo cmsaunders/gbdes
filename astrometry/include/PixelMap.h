@@ -19,7 +19,7 @@
 #endif
 #include "astshim.h"
 
-#include "Std.h"
+#include "Utils.h"
 #include "LinearAlgebra.h"
 #include "Astrometry.h"
 // Note that Astrometry.h has typdefs for the 2- and 3-element small vectors & matrices
@@ -28,7 +28,7 @@ namespace astrometry {
 
   class PixelMap {
   public:
-    PixelMap(string name_="");
+    PixelMap(std::string name_="");
     virtual ~PixelMap() {}
     // Return pointer to deep copy of self
     virtual PixelMap* duplicate() const =0;
@@ -87,11 +87,11 @@ namespace astrometry {
 #ifdef USE_YAML
     virtual void write(YAML::Emitter& os) const =0;
 #endif
-    string getName() const {return name;}
-    virtual string getType() const {return "None";}
+    std::string getName() const {return name;}
+    virtual std::string getType() const {return "None";}
     
   private:
-    string name;
+    std::string name;
     double pixStep;
     static int anonymousCounter;
   protected:
@@ -117,10 +117,10 @@ namespace astrometry {
   
   class IdentityMap: public PixelMap {
   public:
-    IdentityMap(string name_="Identity"): PixelMap(name_) {}
+    IdentityMap(std::string name_="Identity"): PixelMap(name_) {}
     virtual PixelMap* duplicate() const {return new IdentityMap(*this);}
-    static string type() {return "Identity";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Identity";}
+    virtual std::string getType() const {return type();}
     void toWorld(double xpix, double ypix,
 		 double& xworld, double& yworld,
 		 double color=astrometry::NODATA) const;
@@ -134,7 +134,7 @@ namespace astrometry {
 #ifdef USE_YAML
     static PixelMap* create(const YAML::Node& node,
 			    bool& defaulted,
-			    string name_="") {
+			    std::string name_="") {
       defaulted = false;
       return name_.empty() ? new IdentityMap() : new IdentityMap(name_);}
     virtual void write(YAML::Emitter& os) const {
@@ -147,13 +147,13 @@ namespace astrometry {
   class ConstantMap: public PixelMap {
     // Class representing a constant shift of position
   public:
-    ConstantMap(string name_, double dx=0., double dy=0.): PixelMap(name_),
+    ConstantMap(std::string name_, double dx=0., double dy=0.): PixelMap(name_),
 							   dxy(2) {
       dxy[0] = dx; dxy[1] = dy;
     }
     virtual PixelMap* duplicate() const {return new ConstantMap(*this);}
-    static string type() {return "Constant";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Constant";}
+    virtual std::string getType() const {return type();}
     int nParams() const {return 2;}
     void setParams(const DVector& p) {Assert(p.size()==2); dxy = p;}
     DVector getParams() const {return dxy;}
@@ -199,9 +199,8 @@ namespace astrometry {
 #ifdef USE_YAML
     static PixelMap* create(const YAML::Node& node,
 			    bool& defaulted,
-			    string name_="");
-    virtual void write(YAML::Emitter& os) const {
-      vector<double> vv(2);
+			    std::string name_="");
+    virtual void write(YAML::Emitter& os) const {std::vector<double> vv(2);
       vv[0] = dxy[0]; vv[1] = dxy[1];
       os << YAML::BeginMap << YAML::Key << "Type" << YAML::Value << type()
 	 << YAML::Key << "Parameters" << YAML::Flow << YAML::Value << vv
@@ -229,7 +228,7 @@ namespace astrometry {
     ReprojectionMap(const SphericalCoords& pixCoords,
 		    const SphericalCoords& worldCoords,
 		    double scale_=1.,
-		    string name_=""):
+		    std::string name_=""):
       PixelMap(name_),
       pix(pixCoords.duplicate()), world(worldCoords.duplicate()), 
       scaleFactor(scale_)  {
@@ -251,14 +250,14 @@ namespace astrometry {
     Matrix22 dWorlddPix(double xpix, double ypix, 
 			double color=astrometry::NODATA) const;    
 
-    static string type() {return "Reprojection";}
+    static std::string type() {return "Reprojection";}
 #ifdef USE_YAML
     static PixelMap* create(const YAML::Node& node,
 			    bool& defaulted,
-			    string name="");
+			    std::string name="");
     virtual void write(YAML::Emitter& os) const;
 #endif
-    virtual string getType() const {return type();}
+    virtual std::string getType() const {return type();}
     Matrix33 getPixMatrix() const;
     Matrix33 getWorldMatrix() const;
     Vector2 getWorldPole() const;
@@ -273,7 +272,7 @@ namespace astrometry {
   // The ColorTerm will assume ownership of the PixelMap that it wraps and will delete it.  
   class ColorTerm: public PixelMap {
   public:
-    ColorTerm(PixelMap* pm_, double referenceColor=0., string name=""):
+    ColorTerm(PixelMap* pm_, double referenceColor=0., std::string name=""):
       PixelMap(name),
       pm(pm_),
       reference(referenceColor) {}
@@ -285,8 +284,8 @@ namespace astrometry {
     virtual PixelMap* duplicate() const {return new ColorTerm(pm->duplicate(),
 							      reference,
 							      getName());}
-    static string type() {return "Color";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Color";}
+    virtual std::string getType() const {return type();}
     virtual bool needsColor() const {return true;}
     // Will not have Create() call since color maps will be built by PixelMapCollection.
     // But for some convenience, provide a separate serialization.
@@ -345,7 +344,7 @@ private:
 
     ~ASTMap() = default;
     
-    static string type() {return "AST";}
+    static std::string type() {return "AST";}
 
     void toWorld(double xpix, double ypix,
                  double &xworld, double &yworld,

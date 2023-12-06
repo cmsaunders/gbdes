@@ -18,7 +18,7 @@ PixelMapCollection::magicKey = "PixelMapCollection";
 //////////////////////////////////////////////////////////////
 // Static data
 //////////////////////////////////////////////////////////////
-map<string,PixelMapCollection::Creator>
+std::map<string,PixelMapCollection::Creator>
 PixelMapCollection::mapCreators;
 
 bool
@@ -126,8 +126,8 @@ PixelMapCollection::getParams() const {
     if (map.isFixed) continue;
     int nSub = map.nParams;
     if (nSub<=0) continue;
-    if (!map.atom) 
-      cerr << "mapElement is not atomic: " << melpair.first << " params: " << nSub << endl;
+    if (!map.atom)
+      std::cerr << "mapElement is not atomic: " << melpair.first << " params: " << nSub << std::endl;
     Assert(map.atom);
     p.subVector(map.startIndex, map.startIndex+nSub) = 
       map.atom->getParams().subVector(0,nSub);
@@ -156,14 +156,14 @@ PixelMapCollection::getParams(string mapName) const {
 
 std::map<std::string, astrometry::DVector>
 PixelMapCollection::getParamDict() const {
-  map<string, linalg::Vector<double>> outMap;
+  std::map<string, linalg::Vector<double>> outMap;
   for (auto& melpair : mapElements) {
     const MapElement& map = melpair.second;
     if (map.isFixed) continue;
     int nSub = map.nParams;
     if (nSub<=0) continue;
-    if (!map.atom) 
-      cerr << "mapElement is not atomic: " << melpair.first << " params: " << nSub << endl;
+    if (!map.atom)
+        std::cerr << "mapElement is not atomic: " << melpair.first << " params: " << nSub << std::endl;
     Assert(map.atom);
     DVector p = map.atom->getParams().subVector(0,nSub);
     string mapName = melpair.first;
@@ -223,16 +223,16 @@ PixelMapCollection::copyParamsFrom(const PixelMap& pm) {
 
 void 
 PixelMapCollection::setFixed(string name, bool isFixed) {
-  set<string> s;
+  std::set<string> s;
   s.insert(name);
   setFixed(s, isFixed);
 }
 
 void 
-PixelMapCollection::setFixed(set<string> nameList, bool isFixed) {
-  set<string> fixThese;
+PixelMapCollection::setFixed(std::set<string> nameList, bool isFixed) {
+  std::set<string> fixThese;
   for (auto iName : nameList) {
-    set<string> addThese = dependencies(iName);
+    std::set<string> addThese = dependencies(iName);
     fixThese.insert(addThese.begin(), addThese.end());
   }
   for (auto iName : fixThese) {
@@ -250,7 +250,7 @@ bool
 PixelMapCollection::getFixed(string name) const {
   auto i = mapElements.find(name);
   if (i==mapElements.end()) {
-    cerr << "No member of PixelMapCollection named " << name << endl;
+    std::cerr << "No member of PixelMapCollection named " << name << std::endl;
     throw AstrometryError("No member of PixelMapCollection named " + name);
   }
   auto& mel = i->second;
@@ -357,18 +357,18 @@ PixelMapCollection::rebuildParameterVector() {
 // Member maintenance
 //////////////////////////////////////////////////////////////
 
-vector<string>
+std::vector<string>
 PixelMapCollection::allMapNames() const {
-  vector<string> output;
+  std::vector<string> output;
   for (auto& i : mapElements) {
     output.push_back(i.first);
   }
   return output;
 }
 
-vector<string>
+std::vector<string>
 PixelMapCollection::allWcsNames() const {
-  vector<string> output;
+  std::vector<string> output;
   for (auto& i : wcsElements)
     output.push_back(i.first);
   return output;
@@ -512,7 +512,7 @@ PixelMapCollection::learn(PixelMapCollection& rhs, bool duplicateNamesAreExcepti
 // Define a new pixelMap that is compounding of a list of other PixelMaps.  Order
 // of the list is from pixel to world coordinates.
 void 
-PixelMapCollection::defineChain(string chainName, const list<string>& elements) {
+PixelMapCollection::defineChain(string chainName, const std::list<string>& elements) {
   if (mapExists(chainName)) 
     throw AstrometryError("PixelMapCollection::defineChain with duplicate name: " 
 			  + chainName);
@@ -557,12 +557,12 @@ PixelMapCollection::issueMap(string mapName) {
 
   if (!el.realization) {
     // Create a realization if one does not exist
-    list<string> atomList = orderAtoms(mapName);
-    vector<int> startIndices(atomList.size(), 0);
-    vector<int> nParams(atomList.size(), 0);
-    vector<int> mapNumbers(atomList.size(), -1);
+    std::list<string> atomList = orderAtoms(mapName);
+    std::vector<int> startIndices(atomList.size(), 0);
+    std::vector<int> nParams(atomList.size(), 0);
+    std::vector<int> mapNumbers(atomList.size(), -1);
 
-    list<PixelMap*> atoms;
+    std::list<PixelMap*> atoms;
     int index=0;
     for (auto i = atomList.begin();
 	 i != atomList.end();
@@ -596,7 +596,7 @@ PixelMapCollection::cloneMap(string mapName) const {
     return el.atom->duplicate();
 
   // A composite one we will create as a SubMap:
-  list<PixelMap*> vMaps;
+  std::list<PixelMap*> vMaps;
   for (auto& i : el.subordinateMaps)
     vMaps.push_back(cloneMap(i));
   SubMap* retval = new SubMap(vMaps, mapName, false);
@@ -635,19 +635,19 @@ PixelMapCollection::cloneWcs(string wcsName) const {
   return retval;
 }
 
-set<string>
+std::set<string>
 PixelMapCollection::dependencies(string target) const {
   // Find target MapElement and add target to output dependency list.  
   // Assume no circular dependence.
   auto iTarget = mapElements.find(target);
   if (iTarget == mapElements.end()) 
     throw AstrometryError("PixelMapCollection has no element " + target + " in dependencies()");
-  set<string> output;
+  std::set<string> output;
   output.insert(target);
 
   // Call this routine recursively for all the map elements that the target depends on
   for (auto& i : iTarget->second.subordinateMaps) {
-    set<string> subs = dependencies(i);
+    std::set<string> subs = dependencies(i);
     output.insert(subs.begin(), subs.end());
   }
 
@@ -671,12 +671,12 @@ PixelMapCollection::dependsOn(const string mapName, const string targetName) con
 
 // Return a list of the atomic elements of the named map, in order of
 // their application to data.  Assumes no circular dependence.
-list<string> 
+std::list<string>
 PixelMapCollection::orderAtoms(string mapName) const {
   if (!mapExists(mapName))
     throw AstrometryError("PixelMapCollection::orderAtoms requested for unknown map: "
 			  + mapName);
-  list<string> retval;
+  std::list<string> retval;
   const MapElement& m = mapElements.find(mapName)->second;
   if (m.atom) {
     // Simple atomic element just returns itself
@@ -687,7 +687,7 @@ PixelMapCollection::orderAtoms(string mapName) const {
   // Otherwise we have a compound map at work here.
   // Call recursively to all subordinateMaps:
   for (auto& i : m.subordinateMaps) {
-    list<string> subList = orderAtoms(i);
+    std::list<string> subList = orderAtoms(i);
     retval.splice(retval.end(), subList);
   }
   return retval;
@@ -695,7 +695,7 @@ PixelMapCollection::orderAtoms(string mapName) const {
 
 void
 PixelMapCollection::checkCircularDependence(string mapName,
-					    const set<string>& ancestors) const {
+					    const std::set<string>& ancestors) const {
   if (!mapExists(mapName))
     throw AstrometryError("Unknown mapName in PixelMapCollection::checkCircularDependency: "
 			  + mapName);
@@ -703,7 +703,7 @@ PixelMapCollection::checkCircularDependence(string mapName,
     throw AstrometryError("Circular dependency in PixelMapCollection at map "
 			  + mapName);
   // Then call recursively to all subordinateMaps, adding self to ancestor list:
-  set<string> ancestorsPlusSelf(ancestors);
+  std::set<string> ancestorsPlusSelf(ancestors);
   ancestorsPlusSelf.insert(mapName);
   const MapElement& m = mapElements.find(mapName)->second;
   for (auto& i : m.subordinateMaps) 
@@ -754,8 +754,8 @@ void
 PixelMapCollection::purgeInvalid() {
   // Collect names of all maps that invalid WCS's use,
   // and get rid of the WCS's themselves.
-  set<string> unneeded;
-  set<string> badWcs;
+  std::set<std::string> unneeded;
+  std::set<std::string> badWcs;
   for (auto& i : wcsElements) {
     if (i.second.isValid) continue;
     badWcs.insert(i.first);
@@ -849,7 +849,7 @@ PixelMapCollection::writeSingleMap(YAML::Emitter& os, const MapElement& mel, str
 }
 
 void 
-PixelMapCollection::write(ostream& os, string comment) const {
+PixelMapCollection::write(std::ostream& os, string comment) const {
   // Create a YAML emitter.  Produce a map where one
   // key is the magic word, and the rest are names of maps.
   YAML::Emitter out;
@@ -873,14 +873,14 @@ PixelMapCollection::write(ostream& os, string comment) const {
   }
   out << YAML::EndMap;
   // Send the YAML to the output stream
-  os << out.c_str() << endl;
+  os << out.c_str() << std::endl;
 }
 
 void 
-PixelMapCollection::writeMap(ostream& os, string name, string comment) const {
+PixelMapCollection::writeMap(std::ostream& os, string name, string comment) const {
   if (!mapExists(name))
     throw AstrometryError("PixelMapCollection::writeMap() for unknown map: " + name);
-  set<string> allmaps = dependencies(name);
+  std::set<string> allmaps = dependencies(name);
   YAML::Emitter out;
   out << YAML::BeginMap;
   if (comment.size()>0)
@@ -894,11 +894,11 @@ PixelMapCollection::writeMap(ostream& os, string name, string comment) const {
   }
   out << YAML::EndMap;
   // Send the YAML to the output stream
-  os << out.c_str() << endl;
+  os << out.c_str() << std::endl;
 }
 
 void 
-PixelMapCollection::writeWcs(ostream& os, string name, string comment) const {
+PixelMapCollection::writeWcs(std::ostream& os, string name, string comment) const {
   if (!wcsExists(name))
     throw AstrometryError("PixelMapCollection::writeWcs() for unknown Wcs: " + name);
   auto j = wcsElements.find(name);
@@ -915,7 +915,7 @@ PixelMapCollection::writeWcs(ostream& os, string name, string comment) const {
   writeSingleWcs(out, j->second, name);
   out << YAML::EndMap; // close out the WCS node.
   // Then all of the dependent map elements
-  set<string> allmaps = dependencies(j->second.mapName);
+  std::set<string> allmaps = dependencies(j->second.mapName);
   // Write the map elements
   for (auto mapname : allmaps) {
     auto ii = mapElements.find(mapname);
@@ -923,11 +923,11 @@ PixelMapCollection::writeWcs(ostream& os, string name, string comment) const {
   }
   out << YAML::EndMap;
   // Send the YAML to the output stream
-  os << out.c_str() << endl;
+  os << out.c_str() << std::endl;
 }
 
 bool
-PixelMapCollection::read(istream& is, string namePrefix) {
+PixelMapCollection::read(std::istream& is, string namePrefix) {
   string buffer;
   //try {
   {
@@ -1008,7 +1008,7 @@ PixelMapCollection::read(istream& is, string namePrefix) {
 	// Composite maps: all names stored in a child node
 	if (!node["Elements"])
 	  throw AstrometryError("Missing Elements key in SubMap YAML entry " + name);
-	list<string> submaps = node["Elements"].as<list<string> >();
+	std::list<string> submaps = node["Elements"].as<std::list<string> >();
 
 	// Create the MapElement
 	MapElement mel;

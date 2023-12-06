@@ -2,7 +2,7 @@
 #ifndef ASTROMETRY_H
 #define ASTROMETRY_H
 
-#include "Std.h"
+#include "Utils.h"
 #include "LinearAlgebra.h"
 #include "AstronomicalConstants.h"
 #ifdef USE_YAML
@@ -27,15 +27,15 @@ namespace astrometry {
   
   class AstrometryError: public std::runtime_error {
   public:
-    AstrometryError(const string &m=""): 
+    AstrometryError(const std::string &m=""):
       std::runtime_error("Astrometry Error: " +m) {}
   };
 
   // ??? Take this out later:
-  string  degdms(double degr, int decimalPlaces);
-  string  deghms(double degr, int decimalPlaces);
-  double  hmsdeg(const string& s);
-  double  dmsdeg(const string& s);
+  std::string  degdms(double degr, int decimalPlaces);
+  std::string  deghms(double degr, int decimalPlaces);
+  double  hmsdeg(const std::string& s);
+  double  dmsdeg(const std::string& s);
 
   // Specify UT Date + Time
   // Some details here:  it is assumed that the time stored here is UTC.
@@ -200,7 +200,7 @@ namespace astrometry {
 #ifdef USE_YAML
     // Static map of the types of SphericalCoords that can be
     // deserialied from YAML
-    static std::map<string,Creator> typemap;
+    static std::map<std::string,Creator> typemap;
     // Load the map with known SphericalCoord types
     static void initializeTypemap();
 #endif
@@ -247,7 +247,7 @@ namespace astrometry {
 #ifdef USE_YAML
     // Serialization
     virtual void serialize(YAML::Emitter& os) const;
-    static string type() {return "ICRS";}
+    static std::string type() {return "ICRS";}
     static SphericalCoords* create(const YAML::Node& node);
 #endif    
 
@@ -273,7 +273,7 @@ namespace astrometry {
 #ifdef USE_YAML
     // Serialization
     virtual void serialize(YAML::Emitter& os) const;
-    static string type() {return "Ecliptic";}
+    static std::string type() {return "Ecliptic";}
     static SphericalCoords* create(const YAML::Node& node);
 #endif
   private:
@@ -304,7 +304,7 @@ namespace astrometry {
 #ifdef USE_YAML
     // Serialization
     virtual void serialize(YAML::Emitter& os) const;
-    static string type() {return "Invariable";}
+    static std::string type() {return "Invariable";}
     static SphericalCoords* create(const YAML::Node& node);
 #endif
   private:
@@ -455,7 +455,7 @@ namespace astrometry {
 #ifdef USE_YAML
     // Serialization
     virtual void serialize(YAML::Emitter& os) const;
-    static string type() {return "CustomPole";}
+    static std::string type() {return "CustomPole";}
     static SphericalCoords* create(const YAML::Node& node);
 #endif
   };
@@ -513,7 +513,7 @@ namespace astrometry {
 #ifdef USE_YAML
     // Serialization
     virtual void serialize(YAML::Emitter& os) const;
-    static string type() {return "Gnomonic";}
+    static std::string type() {return "Gnomonic";}
     static SphericalCoords* create(const YAML::Node& node);
 #endif
   };

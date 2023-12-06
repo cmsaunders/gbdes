@@ -17,7 +17,7 @@
 
 #include <stdexcept>
 #include "LinearAlgebra.h"
-#include "Std.h"
+#include "Utils.h"
 #include "Stopwatch.h"
 
 #ifdef USE_TMV
@@ -30,7 +30,7 @@
 // An exception class:
 class NoConverge: public std::runtime_error {
 public:
- NoConverge(const string m): std::runtime_error("Marquardt did not converge; "+m)
+ NoConverge(const std::string m): std::runtime_error("Marquardt did not converge; "+m)
   {}
 };
 
@@ -158,7 +158,7 @@ Marquardt<T,P>::fit(Vector& a, int maxIter, bool progressToCerr) {
   //Make normal matrices first time through:
   if (progressToCerr) {
     timer.start();
-    cerr << "## Marquart iteration 0 derivatives...";
+      std::cerr << "## Marquart iteration 0 derivatives...";
   }
   if (saveMemory) 
     derivs(a,bestChisq,*beta,*alpha);
@@ -166,9 +166,9 @@ Marquardt<T,P>::fit(Vector& a, int maxIter, bool progressToCerr) {
     derivs(a,bestChisq,*bestBeta,*bestAlpha);
   if (progressToCerr) {
     timer.stop();
-    cerr << "done in " << to_string(timer) << " sec" 
-	 << " chisq=" << to_string(bestChisq) 
-	 << endl;
+    std::cerr << "done in " << std::to_string(timer) << " sec"
+	 << " chisq=" << std::to_string(bestChisq)
+	 << std::endl;
   }
 
   lambda = 0.001;
@@ -199,7 +199,7 @@ Marquardt<T,P>::fit(Vector& a, int maxIter, bool progressToCerr) {
     if (progressToCerr) {
       timer.reset();
       timer.start();
-      cerr << "## Marquart iteration " << to_string(i) << " inversion...";
+      std::cerr << "## Marquart iteration " << std::to_string(i) << " inversion...";
     }
 
     // Solve linear system and get new parameters.
@@ -224,7 +224,7 @@ Marquardt<T,P>::fit(Vector& a, int maxIter, bool progressToCerr) {
     
     if (progressToCerr) {
       timer.stop();
-      cerr << "done in " << to_string(timer) << " sec" << endl;
+      std::cerr << "done in " << std::to_string(timer) << " sec" << std::endl;
     }
 
 
@@ -232,17 +232,17 @@ Marquardt<T,P>::fit(Vector& a, int maxIter, bool progressToCerr) {
     if (progressToCerr) {
       timer.reset();
       timer.start();
-      cerr << "## Marquart iteration " << to_string(i+1) << " derivatives...";
+      std::cerr << "## Marquart iteration " << std::to_string(i+1) << " derivatives...";
     }
 
     derivs(a,chisq,*beta,*alpha);
 
     if (progressToCerr) {
       timer.stop();
-      cerr << "done in " << to_string(timer) << " sec" 
-	   << " lambda=" << to_string(lambda) 
-	   << " chisq=" << to_string(chisq) 
-	   << endl;
+       std::cerr << "done in " << std::to_string(timer) << " sec"
+	   << " lambda=" << std::to_string(lambda)
+	   << " chisq=" << std::to_string(chisq)
+	   << std::endl;
     }
 
 #ifdef DEBUG
@@ -283,7 +283,7 @@ Marquardt<T,P>::fit(Vector& a, int maxIter, bool progressToCerr) {
       if (lambda > MaxLambda) {
 	// We're going to declare a local min
 	// if tiny steepest-descent steps are not improving:
-	cerr << "WARNING: Marquardt lambda=" << to_string(lambda) << endl;
+    std::cerr << "WARNING: Marquardt lambda=" << std::to_string(lambda) << std::endl;
 	isFit = true;
 	bestChisq = chisq;
 	*bestA = a;

@@ -1,7 +1,6 @@
 #include "Interpolant.h"
 #include "Simpson.h"
 
-using namespace std;
 using namespace fft;
 
 double

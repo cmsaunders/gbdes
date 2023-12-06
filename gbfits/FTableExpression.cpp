@@ -14,7 +14,7 @@ class TableToken;
 // Also allow up-conversion of long to double, but no down-conversions.
 // nrows tells how big to make the vector if the expression has scalar value.
 template <class T>
-bool ValueConverter(vector<T>& vec, const expressions::Value* val, long nrows) {return false;}
+bool ValueConverter(std::vector<T>& vec, const expressions::Value* val, long nrows) {return false;}
 
 class ColumnEvaluable: public expressions::Evaluable {
 public:
@@ -22,10 +22,10 @@ public:
     tptr(tptr_), colName(columnName) {}
   virtual expressions::Value* evaluate() const {
     const ColumnBase* col = (*tptr)[colName];
-    vector<bool> vb;
-    vector<string> vs;
-    vector<long> vl;
-    vector<double> vd;
+    std::vector<bool> vb;
+    std::vector<string> vs;
+    std::vector<long> vl;
+    std::vector<double> vd;
     if (col->makeVector(vb)) {
       return new expressions::VectorValue<bool>(vb);
     } else if (col->makeVector(vs)) {
@@ -40,10 +40,10 @@ public:
   }
   virtual expressions::Value* returnEmptyEvaluation() const {
     const ColumnBase* col = (*tptr)[colName];
-    vector<bool> vb;
-    vector<string> vs;
-    vector<long> vl;
-    vector<double> vd;
+    std::vector<bool> vb;
+    std::vector<string> vs;
+    std::vector<long> vl;
+    std::vector<double> vd;
     if (col->makeVector(vb)) {
       return new expressions::VectorValue<bool>();
     } else if (col->makeVector(vs)) {
@@ -65,7 +65,7 @@ class TableToken: public expressions::Token {
 public:
   TableToken(const TableData* tptr_, const Header* hptr_):
     tptr(tptr_), hptr(hptr_) {}
-  const set<string>& columnNames() const {return columns;}
+  const std::set<string>& columnNames() const {return columns;}
   virtual expressions::Token* createFromString(const std::string& input,
 					      size_t& begin, size_t& end,
 					      bool lastTokenWasOperator) const {
@@ -113,7 +113,7 @@ private:
 // Expression evaluation, convert to type T.  Use Header hh to evaluate scalars.
 template <class T>
 void 
-TableData::evaluate(vector<T>& result,
+TableData::evaluate(std::vector<T>& result,
 		    const string& expression,
 		    const Header* hh) const {
 
@@ -142,7 +142,7 @@ TableData::evaluate(vector<T>& result,
 
 // Special the conversion from Expression Value to a vector
 template <>
-bool ValueConverter(vector<bool>& vec, const expressions::Value* val, long nrows) {
+bool ValueConverter(std::vector<bool>& vec, const expressions::Value* val, long nrows) {
   if (auto vptr = dynamic_cast<const VectorValue<bool>*> (val) )  {
     vec = vptr->values;
     return true;
@@ -180,7 +180,7 @@ bool ValueConverter(vector<bool>& vec, const expressions::Value* val, long nrows
 }
 
 template <>
-bool ValueConverter(vector<string>& vec, const expressions::Value* val, long nrows) {
+bool ValueConverter(std::vector<string>& vec, const expressions::Value* val, long nrows) {
   if (auto vptr = dynamic_cast<const VectorValue<string>*> (val) )  {
     vec = vptr->values;
     return true;
@@ -194,7 +194,7 @@ bool ValueConverter(vector<string>& vec, const expressions::Value* val, long nro
 }
 
 template <>
-bool ValueConverter(vector<long>& vec, const expressions::Value* val, long nrows) {
+bool ValueConverter(std::vector<long>& vec, const expressions::Value* val, long nrows) {
   if (auto vptr = dynamic_cast<const VectorValue<long>*> (val) )  {
     vec = vptr->values;
     return true;
@@ -208,7 +208,7 @@ bool ValueConverter(vector<long>& vec, const expressions::Value* val, long nrows
 }
 
 template <>
-bool ValueConverter(vector<double>& vec, const expressions::Value* val, long nrows) {
+bool ValueConverter(std::vector<double>& vec, const expressions::Value* val, long nrows) {
   if (auto vptr = dynamic_cast<const VectorValue<double>*> (val) )  {
     vec = vptr->values;
     return true;
@@ -230,8 +230,8 @@ bool ValueConverter(vector<double>& vec, const expressions::Value* val, long nro
 }
 
 template 
-void TableData::evaluate(vector<bool>&, const string&, const Header* hh) const;
+void TableData::evaluate(std::vector<bool>&, const string&, const Header* hh) const;
 template 
-void TableData::evaluate(vector<double>&, const string&, const Header* hh) const;
+void TableData::evaluate(std::vector<double>&, const string&, const Header* hh) const;
 template 
-void TableData::evaluate(vector<int>&, const string&, const Header* hh) const;
+void TableData::evaluate(std::vector<int>&, const string&, const Header* hh) const;

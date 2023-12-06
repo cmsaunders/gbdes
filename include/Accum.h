@@ -5,7 +5,7 @@
 
 #ifndef ACCUM_H
 #define ACCUM_H
-#include "Std.h"
+#include "Utils.h"
 
 template <class S>
 class Accum {
@@ -29,8 +29,8 @@ public:
     void add(const typename S::Detection &d);
     double rms() const;
     double reducedChisq() const;
-    string summary() const;
-    static string header();
+    std::string summary() const;
+    static std::string header();
 };
 
 #endif

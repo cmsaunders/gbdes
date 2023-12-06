@@ -3,7 +3,7 @@
 
 using namespace astrometry;
 
-Wcs::Wcs(PixelMap* pm_, const SphericalCoords& nativeCoords_, string name, 
+Wcs::Wcs(PixelMap* pm_, const SphericalCoords& nativeCoords_, std::string name,
 	 double wScale_, bool shareMap_): PixelMap(name), wScale(wScale_), 
 					 nativeCoords(nullptr),
 					 targetCoords(nullptr),

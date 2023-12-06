@@ -1,5 +1,5 @@
 // Code for fitting parameters of defaulted pixel maps to the staring WCS solution.
-#include "Std.h"
+#include "Utils.h"
 #include "PixelMapCollection.h"
 #include "Instrument.h"
 #include "Match.h"
@@ -11,9 +11,9 @@ using namespace astrometry;
 
 std::mt19937 g(12345);
 
-void fitDefaulted(PixelMapCollection &pmc, set<Extension *> extensions,
-                  const vector<unique_ptr<Instrument>> &instruments,
-                  const vector<unique_ptr<Exposure>> &exposures, bool logging) {
+void fitDefaulted(PixelMapCollection &pmc, std::set<Extension *> extensions,
+                  const std::vector<std::unique_ptr<Instrument>> &instruments,
+                  const std::vector<std::unique_ptr<Exposure>> &exposures, bool logging) {
     // Make a new pixel map collection that will hold only the maps
     // involved in this fit.
     PixelMapCollection pmcFit;
@@ -28,8 +28,8 @@ void fitDefaulted(PixelMapCollection &pmc, set<Extension *> extensions,
 
     // Find all the atomic map components that are defaulted.
     // Fix the parameters of all the others
-    set<string> defaultedAtoms;
-    set<string> fixAtoms;
+    std::set<std::string> defaultedAtoms;
+    std::set<std::string> fixAtoms;
     for (auto mapname : pmcFit.allMapNames()) {
         if (!pmc.isAtomic(mapname)) continue;
         if (pmc.getDefaulted(mapname))
@@ -42,9 +42,9 @@ void fitDefaulted(PixelMapCollection &pmc, set<Extension *> extensions,
 
     // If the exposure has any defaulted maps, initialize them
     /**/ if (logging) {
-        cerr << "Initializing maps ";
-        for (auto name : defaultedAtoms) cerr << name << " ";
-        cerr << endl;
+        std::cerr << "Initializing maps ";
+        for (auto name : defaultedAtoms) std::cerr << name << " ";
+        std::cerr << std::endl;
     }
     pmcFit.learnMap(IdentityMap());  // Make sure we know this one
     pmcFit.setFixed(fixAtoms);
@@ -68,11 +68,11 @@ void fitDefaulted(PixelMapCollection &pmc, set<Extension *> extensions,
         // Get the boundaries of the device it uses
         Bounds<double> b = instruments[expo.instrument]->domains[extnptr->device];
         if (logging) {
-            cerr << "instrument, device: " << expo.instrument << " " << extnptr->device
-                 << endl;
+            std::cerr << "instrument, device: " << expo.instrument << " " << extnptr->device
+                 << std::endl;
             double txw, tyw;
             extnptr->startWcs->toWorld(b.getXMin(), b.getYMin(), txw, tyw);
-            cerr << "check p1 " << txw << " " << tyw << endl;
+            std::cerr << "check p1 " << txw << " " << tyw << std::endl;
         }
         // Generate a grid of matched Detections
         const int nGridPoints = 512;  // Number of test points for map initialization
@@ -84,9 +84,9 @@ void fitDefaulted(PixelMapCollection &pmc, set<Extension *> extensions,
         const double refWeight = 10. * fitWeight;
         // Distribute points equally in x and y, but shuffle the y coords
         // so that the points fill the rectangle
-        vector<int> vx(nGridPoints);
+        std::vector<int> vx(nGridPoints);
         for (int i = 0; i < vx.size(); i++) vx[i] = i;
-        vector<int> vy = vx;
+        std::vector<int> vy = vx;
         std::shuffle(vy.begin(), vy.end(), g);
         double xstep = (b.getXMax() - b.getXMin()) / nGridPoints;
         double ystep = (b.getYMax() - b.getYMin()) / nGridPoints;
@@ -95,11 +95,11 @@ void fitDefaulted(PixelMapCollection &pmc, set<Extension *> extensions,
             double ypix = b.getXMin() + (vy[i] + 0.5) * ystep;
             double xw, yw;
             extnptr->startWcs->toWorld(xpix, ypix, xw, yw);  // startWCS has no color!
-            unique_ptr<Detection> dfit(new Detection);
-            unique_ptr<Detection> dref(new Detection);
+            std::unique_ptr<Detection> dfit(new Detection);
+            std::unique_ptr<Detection> dref(new Detection);
             if (logging && (i == 10)) {
-                cerr << "pix check " << xpix << " " << ypix << " " << xw
-                     << " " << yw << endl;
+                std::cerr << "pix check " << xpix << " " << ypix << " " << xw
+                     << " " << yw << std::endl;
             }
             dfit->xpix = xpix;
             dfit->ypix = ypix;
@@ -150,9 +150,9 @@ void fitDefaulted(PixelMapCollection &pmc, set<Extension *> extensions,
 
 // Define and issue WCS for each extension in use, and set projection to
 // field coordinates.
-void setupWCS(const vector<unique_ptr<SphericalCoords>> &fieldProjections,
-              const vector<unique_ptr<Instrument>> &instruments,
-              const vector<unique_ptr<Exposure>> &exposures, vector<unique_ptr<Extension>> &extensions,
+void setupWCS(const std::vector<std::unique_ptr<SphericalCoords>> &fieldProjections,
+              const std::vector<std::unique_ptr<Instrument>> &instruments,
+              const std::vector<std::unique_ptr<Exposure>> &exposures, std::vector<std::unique_ptr<Extension>> &extensions,
               PixelMapCollection &pmc) {
     for (auto const &extnptr : extensions) {
         if (!extnptr) continue;  // Not in use
@@ -186,24 +186,24 @@ void setupWCS(const vector<unique_ptr<SphericalCoords>> &fieldProjections,
     }  // end extension loop
 }
 
-list<int> pickExposuresToInitialize(const vector<unique_ptr<Instrument>> &instruments,
-                                    const vector<unique_ptr<Exposure>> &exposures,
-                                    const vector<unique_ptr<Extension>> &extensions,
+list<int> pickExposuresToInitialize(const std::vector<std::unique_ptr<Instrument>> &instruments,
+                                    const std::vector<std::unique_ptr<Exposure>> &exposures,
+                                    const std::vector<std::unique_ptr<Extension>> &extensions,
                                     PixelMapCollection &pmc) {
     list<int> exposuresToInitialize;
     for (int iInst = 0; iInst < instruments.size(); iInst++) {
         if (!instruments[iInst]) continue;  // Not in use
         auto &instr = *instruments[iInst];
         // Classify the device maps for this instrument
-        set<int> defaultedDevices;
-        set<int> initializedDevices;
-        set<int> unusedDevices;
+        std::set<int> defaultedDevices;
+        std::set<int> initializedDevices;
+        std::set<int> unusedDevices;
 
         // And the exposure maps as well:
-        set<int> defaultedExposures;
-        set<int> initializedExposures;
-        set<int> unusedExposures;
-        set<int> itsExposures;  // All exposure numbers using this instrument
+        std::set<int> defaultedExposures;
+        std::set<int> initializedExposures;
+        std::set<int> unusedExposures;
+        std::set<int> itsExposures;  // All exposure numbers using this instrument
 
         for (int iDev = 0; iDev < instr.nDevices; iDev++) {
             string mapName = instr.mapNames[iDev];
@@ -233,14 +233,14 @@ list<int> pickExposuresToInitialize(const vector<unique_ptr<Instrument>> &instru
             }
         }
 
-        /**/ cerr << "Done collecting initialized/defaulted" << endl;
+        /**/ std::cerr << "Done collecting initialized/defaulted" << std::endl;
 
         // No need for any of this if there are no defaulted devices
         if (defaultedDevices.empty()) continue;
 
         // Now take an inventory of all extensions to see which device
         // solutions are used in coordination with which exposure solutions
-        vector<set<int>> exposuresUsingDevice(instr.nDevices);
+        std::vector<std::set<int>> exposuresUsingDevice(instr.nDevices);
         for (auto const &extnptr : extensions) {
             if (!extnptr) continue;  // Not in use
             int iExpo = extnptr->exposure;
@@ -260,7 +260,7 @@ list<int> pickExposuresToInitialize(const vector<unique_ptr<Instrument>> &instru
             }
         }
 
-        /**/ cerr << "Done building exposure/device graph" << endl;
+        /**/ std::cerr << "Done building exposure/device graph" << std::endl;
 
         // Find a non-defaulted exposure using all of the defaulted devices
         int exposureForInitializing = -1;
@@ -286,8 +286,8 @@ list<int> pickExposuresToInitialize(const vector<unique_ptr<Instrument>> &instru
             throw std::runtime_error(error_message);
         } else {
             exposuresToInitialize.push_back(exposureForInitializing);
-            cerr << "Using exposure " << exposures[exposureForInitializing]->name
-                 << " to initialize defaulted devices on instrument " << instr.name << endl;
+            std::cerr << "Using exposure " << exposures[exposureForInitializing]->name
+                 << " to initialize defaulted devices on instrument " << instr.name << std::endl;
         }
     }  // end instrument loop
 

@@ -1,5 +1,9 @@
 #include "Poly2d.h"
 #include "StringStuff.h"
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+#include <vector>
 
 using namespace poly2d;
 using namespace linalg;
@@ -11,10 +15,10 @@ void
 Poly2d::write(std::ostream& os, int precision) const {
   switch (otype) {
   case Sum:
-    os << "Sum " << orderX << endl;
+    os << "Sum " << orderX << std::endl;
     break;
   case Each:
-    os << "Each " << orderX << " " << orderY << endl;
+    os << "Each " << orderX << " " << orderY << std::endl;
     break;
   default:
     FormatAndThrow<Poly2dError>() << "Bad Poly2d OrderType in Poly2d::write()" << otype;
@@ -25,17 +29,17 @@ Poly2d::write(std::ostream& os, int precision) const {
   // Save precision and format of stream before changing it:
   StreamSaver ss(os);
   os.precision(precision);
-  os.setf( ios_base::showpos | ios_base::scientific);
+  os.setf( std::ios_base::showpos | std::ios_base::scientific);
 
   for (int i=0; i<nCoeffs(); i++) {
     if (iOnLine >= coeffsPerLine) {
-      os << endl;
+      os << std::endl;
       iOnLine = 0;
     }
-    os << setw(precision+7) << coeffs[i] << " " ;
+    os << std::setw(precision+7) << coeffs[i] << " " ;
     iOnLine++;
   }
-  os << endl;
+  os << std::endl;
 }
 
 Poly2d*
@@ -49,7 +53,7 @@ Poly2d::create(std::istream& is) {
   int ordY;
   {
     bool badFormat=false;
-    istringstream iss(buffer);
+    std::istringstream iss(buffer);
     if (!(iss >> otypeString)) {
       badFormat = true;
     } else if (stringstuff::nocaseEqual(otypeString,"Sum")) {
@@ -75,7 +79,7 @@ Poly2d::create(std::istream& is) {
     if (!(stringstuff::getlineNoComment(is, buffer)))
       throw Poly2dError("Out of input reading coefficients for Poly2d: " + buffer);
     double c;
-    istringstream iss(buffer);
+    std::istringstream iss(buffer);
     do {
       iss >> c;
       if (!iss.fail()) {
@@ -114,7 +118,7 @@ Poly2d::write(YAML::Emitter& os) const {
     throw Poly2dError("Bad OrderType value in Poly2d::write()");
   }
   DVector coeffs = getC();
-  vector<double> v(coeffs.size());
+  std::vector<double> v(coeffs.size());
   for (int i=0; i<v.size(); i++) v[i] = coeffs[i];
   os << YAML::Key << "Coefficients"
      << YAML::Flow << YAML::Value << v
@@ -148,14 +152,14 @@ Poly2d::create(const YAML::Node& node,
   DVector coeffs(poly->nCoeffs(), 0.);
   if (node["Coefficients"]) {
     //vector<double> v = node["Coefficients"].as<vector<double> >();
-    vector<string> vStr = node["Coefficients"].as<vector<string> >();
-    vector<double> v(vStr.size());
+    std::vector<string> vStr = node["Coefficients"].as<std::vector<string> >();
+    std::vector<double> v(vStr.size());
     transform(vStr.begin(), vStr.end(), v.begin(), [](const string& val)
     {
     return std::stod(val);
     });
     if (v.size() != coeffs.size()) {
-      cerr << v.size() << " " << coeffs.size() << endl;
+      std::cerr << v.size() << " " << coeffs.size() << std::endl;
       throw Poly2dError("Wrong Coefficient count for Poly2d::create(YAML)");
     }
     for (int i=0; i<coeffs.size(); i++)
@@ -239,8 +243,8 @@ Poly2d::powersOfIndex(int n, int& i, int& j) const {
 #else
   // Easiest to just keep a static array for the Sum case:
   // not thread safe!!
-  static vector<int> ix(1,0);
-  static vector<int> iy(1,0);
+  static std::vector<int> ix(1,0);
+  static std::vector<int> iy(1,0);
 
   switch (otype) {
   case Sum: 

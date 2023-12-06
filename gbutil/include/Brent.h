@@ -4,7 +4,7 @@
 #ifndef BRENT_H
 #define BRENT_H
 
-#include "Std.h"
+#include "Utils.h"
 #include <cmath>
 
 namespace brent {

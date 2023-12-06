@@ -12,7 +12,7 @@ PhotoMapCollection::magicKey = "PhotoMapCollection";
 //////////////////////////////////////////////////////////////
 // Static data
 //////////////////////////////////////////////////////////////
-map<string,PhotoMapCollection::Creator>
+std::map<string,PhotoMapCollection::Creator>
 PhotoMapCollection::mapCreators;
 
 bool
@@ -72,7 +72,7 @@ PhotoMapCollection::getParams() const {
     int nSub = map.nParams;
     if (nSub<=0) continue;
     if (!map.atom) 
-      cerr << "mapElement is not atomic: " << melpair.first << " params: " << nSub << endl;
+      std::cerr << "mapElement is not atomic: " << melpair.first << " params: " << nSub << std::endl;
     Assert(map.atom);
     p.subVector(map.startIndex, map.startIndex+nSub) = map.atom->getParams();
   }
@@ -91,16 +91,16 @@ PhotoMapCollection::copyParamsFrom(const PhotoMap& pm) {
 
 void 
 PhotoMapCollection::setFixed(string name, bool isFixed) {
-  set<string> s;
+  std::set<std::string> s;
   s.insert(name);
   setFixed(s, isFixed);
 }
 
 void 
-PhotoMapCollection::setFixed(set<string> nameList, bool isFixed) {
-  set<string> fixThese;
+PhotoMapCollection::setFixed(std::set<std::string> nameList, bool isFixed) {
+  std::set<std::string> fixThese;
   for (auto iName : nameList) {
-    set<string> addThese = dependencies(iName);
+    std::set<std::string> addThese = dependencies(iName);
     fixThese.insert(addThese.begin(), addThese.end());
   }
   for (auto iName : fixThese) {
@@ -203,9 +203,9 @@ PhotoMapCollection::rebuildParameterVector() {
 // Member maintenance
 //////////////////////////////////////////////////////////////
 
-vector<string>
+std::vector<std::string>
 PhotoMapCollection::allMapNames() const {
-  vector<string> output;
+  std::vector<std::string> output;
   for (auto& i : mapElements)
     output.push_back(i.first);
   return output;
@@ -286,7 +286,7 @@ PhotoMapCollection::learn(PhotoMapCollection& rhs, bool duplicateNamesAreExcepti
 // Define a new PhotoMap that is compounding of a list of other PhotoMaps.  Order
 // of the list is order of transform from mapIn to mapOut
 void 
-PhotoMapCollection::defineChain(string chainName, const list<string>& elements) {
+PhotoMapCollection::defineChain(string chainName, const std::list<std::string>& elements) {
   if (mapExists(chainName)) 
     throw PhotometryError("PhotoMapCollection::defineChain with duplicate name: " 
 			  + chainName);
@@ -311,12 +311,12 @@ PhotoMapCollection::issueMap(string mapName) {
 
   if (!el.realization) {
     // Create a realization if one does not exist
-    list<string> atomList = orderAtoms(mapName);
-    vector<int> startIndices(atomList.size(), 0);
-    vector<int> nParams(atomList.size(), 0);
-    vector<int> mapNumbers(atomList.size(), -1);
+    std::list<std::string> atomList = orderAtoms(mapName);
+    std::vector<int> startIndices(atomList.size(), 0);
+    std::vector<int> nParams(atomList.size(), 0);
+    std::vector<int> mapNumbers(atomList.size(), -1);
 
-    list<PhotoMap*> atoms;
+    std::list<PhotoMap*> atoms;
     int index=0;
     for (auto i = atomList.begin();
 	 i != atomList.end();
@@ -350,7 +350,7 @@ PhotoMapCollection::cloneMap(string mapName) const {
     return el.atom->duplicate();
 
   // A composite one we will create as a SubMap:
-  list<PhotoMap*> vMaps;
+  std::list<PhotoMap*> vMaps;
   for (auto& i : el.subordinateMaps)
     vMaps.push_back(cloneMap(i));
   SubMap* retval = new SubMap(vMaps, mapName, false);
@@ -360,19 +360,19 @@ PhotoMapCollection::cloneMap(string mapName) const {
   return retval;
 }
 
-set<string>
+std::set<std::string>
 PhotoMapCollection::dependencies(string target) const {
   // Find target MapElement and add target to output dependency list.  
   // Assume no circular dependence.
   auto iTarget = mapElements.find(target);
   if (iTarget == mapElements.end()) 
     throw PhotometryError("PhotoMapCollection has no element " + target + " in dependencies()");
-  set<string> output;
+  std::set<std::string> output;
   output.insert(target);
 
   // Call this routine recursively for all the map elements that the target depends on
   for (auto& i : iTarget->second.subordinateMaps) {
-    set<string> subs = dependencies(i);
+    std::set<std::string> subs = dependencies(i);
     output.insert(subs.begin(), subs.end());
   }
 
@@ -397,12 +397,12 @@ PhotoMapCollection::dependsOn(const string mapName, const string targetName) con
 
 // Return a list of the atomic elements of the named map, in order of
 // their application to data.  Assumes no circular dependence.
-list<string> 
+std::list<std::string>
 PhotoMapCollection::orderAtoms(string mapName) const {
   if (!mapExists(mapName))
     throw PhotometryError("PhotoMapCollection::orderAtoms requested for unknown map: "
 			  + mapName);
-  list<string> retval;
+  std::list<std::string> retval;
   const MapElement& m = mapElements.find(mapName)->second;
   if (m.atom) {
     // Simple atomic element just returns itself
@@ -413,7 +413,7 @@ PhotoMapCollection::orderAtoms(string mapName) const {
   // Otherwise we have a compound map at work here.
   // Call recursively to all subordinateMaps:
   for (auto& i : m.subordinateMaps) {
-    list<string> subList = orderAtoms(i);
+    std::list<std::string> subList = orderAtoms(i);
     retval.splice(retval.end(), subList);
   }
   return retval;
@@ -421,7 +421,7 @@ PhotoMapCollection::orderAtoms(string mapName) const {
 
 void
 PhotoMapCollection::checkCircularDependence(string mapName,
-					    const set<string>& ancestors) const {
+					    const std::set<std::string>& ancestors) const {
   if (!mapExists(mapName))
     throw PhotometryError("Unknown mapName in PhotoMapCollection::checkCircularDependency: "
 			  + mapName);
@@ -429,7 +429,7 @@ PhotoMapCollection::checkCircularDependence(string mapName,
     throw PhotometryError("Circular dependency in PhotoMapCollection at map "
 			  + mapName);
   // Then call recursively to all subordinateMaps, adding self to ancestor list:
-  set<string> ancestorsPlusSelf(ancestors);
+  std::set<std::string> ancestorsPlusSelf(ancestors);
   ancestorsPlusSelf.insert(mapName);
   const MapElement& m = mapElements.find(mapName)->second;
   for (auto& i : m.subordinateMaps) 
@@ -474,7 +474,7 @@ void
 PhotoMapCollection::purgeInvalid() {
   // Collect names of all maps that invalid maps use,
   // and get rid of them.
-  set<string> unneeded;
+  std::set<std::string> unneeded;
   for (auto& i : mapElements) {
     if (i.second.isValid) continue;
     auto depend = dependencies(i.first);
@@ -557,7 +557,7 @@ PhotoMapCollection::writeSingleMap(YAML::Emitter& os,
 }
 
 void 
-PhotoMapCollection::write(ostream& os, string comment) const {
+PhotoMapCollection::write(std::ostream& os, string comment) const {
   // Create a YAML emitter.  Produce a map where one
   // key is the magic word, and the rest are names of maps.
   YAML::Emitter out;
@@ -571,14 +571,14 @@ PhotoMapCollection::write(ostream& os, string comment) const {
   }
   out << YAML::EndMap;
   // Send the YAML to the output stream
-  os << out.c_str() << endl;
+  os << out.c_str() << std::endl;
 }
 
 void 
-PhotoMapCollection::writeMap(ostream& os, string name, string comment) const {
+PhotoMapCollection::writeMap(std::ostream& os, string name, string comment) const {
   if (!mapExists(name))
     throw PhotometryError("PhotoMapCollection::writeMap() for unknown map: " + name);
-  set<string> allmaps = dependencies(name);
+  std::set<std::string> allmaps = dependencies(name);
   YAML::Emitter out;
   out << YAML::BeginMap;
   if (comment.size()>0)
@@ -592,11 +592,11 @@ PhotoMapCollection::writeMap(ostream& os, string name, string comment) const {
   }
   out << YAML::EndMap;
   // Send the YAML to the output stream
-  os << out.c_str() << endl;
+  os << out.c_str() << std::endl;
 }
 
 bool
-PhotoMapCollection::read(istream& is, string namePrefix) {
+PhotoMapCollection::read(std::istream& is, string namePrefix) {
   string buffer;
   try {
     YAML::Node root = YAML::Load(is);
@@ -640,7 +640,7 @@ PhotoMapCollection::read(istream& is, string namePrefix) {
 	// Composite maps: all names stored in a child node
 	if (!node["Elements"])
 	  throw PhotometryError("Missing Elements key in SubMap YAML entry " + name);
-	list<string> submaps = node["Elements"].as<list<string> >();
+	std::list<std::string> submaps = node["Elements"].as<std::list<std::string> >();
 
 	// Create the MapElement
 	MapElement mel;
@@ -661,7 +661,7 @@ PhotoMapCollection::read(istream& is, string namePrefix) {
     } // end loop through root node map members
 
   } catch (YAML::Exception& e) {
-    /**/cerr << "PhotoMapCollection::read() caught: " << e.what() << endl;
+    /**/std::cerr << "PhotoMapCollection::read() caught: " << e.what() << std::endl;
     // Return false if not a valid YAML file
     return false;
   }

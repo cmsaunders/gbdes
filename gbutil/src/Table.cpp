@@ -73,7 +73,7 @@ V Table<V,A>::operator() (const A a) const {
   try {
     citer p1(upperIndex(a));
     return interpolate(a,p1);
-  } catch (TableOutOfRange) {
+  } catch (TableOutOfRange &) {
     return static_cast<V> (0);
   }
 }
@@ -110,9 +110,9 @@ V Table<V,A>::interpolate(const A a, const citer p1) const {
 }
 
 template<class V, class A>
-void Table<V,A>::read(istream &is) {
-  string line;
-  const string comments="#;!";	//starts comment
+void Table<V,A>::read(std::istream &is) {
+  std::string line;
+  const std::string comments="#;!";	//starts comment
   V vv;
   A aa;
   while (is) {
@@ -122,7 +122,7 @@ void Table<V,A>::read(istream &is) {
     for (i=0;  isspace(line[i]) && i<line.length(); i++) ;
     // skip line if blank or just comment
     if (i==line.length()) continue;
-    if (comments.find(line[i])!=string::npos) continue;
+    if (comments.find(line[i])!=std::string::npos) continue;
     // try reading arg & val from line:
     std::istringstream iss(line);
     iss >> aa >> vv;
@@ -226,7 +226,6 @@ void Table<V,A>::setup() const {
     }
   }
   isReady = true;
-  return;
 }
 
 template class Table<>;

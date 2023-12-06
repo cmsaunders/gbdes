@@ -152,7 +152,7 @@ PhotoPiecewise::write(YAML::Emitter& os) const {
   default:
     throw PhotometryError("Unknown PhotoPiecewise axis");
   }
-  vector<double> vv(v.size());
+  std::vector<double> vv(v.size());
   for (int i=0; i<vv.size(); i++) vv[i] = v[i];
   os << YAML::Key << "ArgStart" << YAML::Value << argStart
      << YAML::Key << "ArgStep" << YAML::Value << argStep
@@ -190,8 +190,8 @@ PhotoPiecewise::create(const YAML::Node& node, string name) {
 
   if (node["Parameters"]) {
     // Build structure from given node values.
-    vector<double> vv;
-    vv = node["Parameters"].as<vector<double> >();
+    std::vector<double> vv;
+    vv = node["Parameters"].as<std::vector<double> >();
     DVector v(vv.size());
     for (int i=0; i<v.size(); i++) v[i] = vv[i];
 

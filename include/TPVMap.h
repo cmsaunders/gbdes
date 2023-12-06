@@ -18,8 +18,8 @@ namespace astrometry {
 // Convert a Wcs expressible as FITS "TPV" WCS standard to/from a list of header key/values
 // The Wcs will have a Gnomonic sky system, and a PixelMap that is linear followed by
 // optional polynomial.
-unique_ptr<Wcs> readTPV(const img::Header &h, string name = "");
-shared_ptr<Wcs> readTPVFromSIP(const map<string, double> &header, string name = "");
+std::unique_ptr<Wcs> readTPV(const img::Header &h, string name = "");
+std::shared_ptr<Wcs> readTPVFromSIP(const std::map<string, double> &header, string name = "");
 img::Header writeTPV(const Wcs &w);  // Will throw exception if Wcs is wrong form
 // Fit a TPV model to wcsIn over the range specified by b.  The TPV system will
 // have its CRVAL[01] and the tpvPole.
@@ -27,7 +27,7 @@ img::Header writeTPV(const Wcs &w);  // Will throw exception if Wcs is wrong for
 // Order of the fitting polynomial can be specified (stick to <=5).  Entry
 // of -1 means it will start at 3 and continue until RMS is <tolerance or 5 is
 // done.
-unique_ptr<Wcs> fitTPV(Bounds<double> b, const Wcs &wcsIn, const SphericalCoords &tpvPole, string name = "",
+std::unique_ptr<Wcs> fitTPV(Bounds<double> b, const Wcs &wcsIn, const SphericalCoords &tpvPole, string name = "",
             double color = 0., double tolerance = 0.0001 * ARCSEC / DEGREE, double order = -1);
 // Get N-choose-K for binomial expansion:
 double NChooseK(int n, int k);

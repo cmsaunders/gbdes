@@ -63,7 +63,7 @@ namespace img {
   template <class DT>
   class ScalarColumn: public ColumnBase {
   protected:
-    vector<DT> v;  // Holds the column's data
+      std::vector<DT> v;  // Holds the column's data
     // Protected function to check length of input strings
     void checkLength(const string& input) {
       if (input.size() > length) 
@@ -77,7 +77,7 @@ namespace img {
     ScalarColumn(string name, long length_=-1): 
       ColumnBase(name), dType(FITS::FITSTypeOf<DT>()), 
       colCode(FITS::ColumnCode<DT>()), length(length_) {}
-    ScalarColumn(const vector<DT>& in, string name, long length_=-1):
+    ScalarColumn(const std::vector<DT>& in, string name, long length_=-1):
       ColumnBase(name), dType(FITS::FITSTypeOf<DT>()), 
       colCode(FITS::ColumnCode<DT>()), v(in), length(length_) {}
     virtual ~ScalarColumn() {}
@@ -119,7 +119,7 @@ namespace img {
 	  if (*i) nReserve++;
       }
       target->v.resize(nReserve);
-      typename vector<DT>::iterator j = target->v.begin();
+      typename std::vector<DT>::iterator j = target->v.begin();
       for (int i=0; i<vb.size(); i++)
 	if (vb[i]) *(j++) = v[i];
       return target;
@@ -127,7 +127,7 @@ namespace img {
 
     // Range checking will be done at TableData level, so none here
     virtual void readCell(DT& value, long row) const {value = v[row];}
-    virtual void readCells(vector<DT>& values, long rowStart=0, long rowEnd=-1) const {
+    virtual void readCells(std::vector<DT>& values, long rowStart=0, long rowEnd=-1) const {
       int nCopy = (rowEnd >=0 ? rowEnd : v.size()) - rowStart;
       if (nCopy < 0) nCopy = 0;
       values.resize(nCopy);
@@ -143,7 +143,7 @@ namespace img {
       return v.size();
     }
     // Or a range: length of input vector determines rows altered; grow table if needed.
-    virtual long writeCells(const vector<DT>& values, long rowStart=0) {
+    virtual long writeCells(const std::vector<DT>& values, long rowStart=0) {
       long requiredSize = rowStart + values.size();
       if (requiredSize > v.size()) v.resize(requiredSize);
       for (int i=0; i<values.size(); i++)
@@ -171,7 +171,7 @@ namespace img {
 
   // Specialization for string-valued scalar arrays, check length as needed
   template<>
-  inline ScalarColumn<string>::ScalarColumn(const vector<string>& in, string name, 
+  inline ScalarColumn<string>::ScalarColumn(const std::vector<string>& in, string name,
 				     long length_): 
     ColumnBase(name), dType(FITS::FITSTypeOf<string>()), 
     colCode(FITS::ColumnCode<string>()), length(length_) {
@@ -193,7 +193,7 @@ namespace img {
 
   template<>
   long
-  inline ScalarColumn<string>::writeCells(const vector<string>& values, long rowStart) {
+  inline ScalarColumn<string>::writeCells(const std::vector<string>& values, long rowStart) {
     if (stringLength()>=0) 
       for (int i=0; i<values.size(); i++)
 	checkLength(values[i]);
@@ -238,18 +238,18 @@ namespace img {
 #undef MVECTOR
 
   template <class DT>
-  class ArrayColumn: public ScalarColumn<vector<DT> > {
+  class ArrayColumn: public ScalarColumn<std::vector<DT> > {
   private:
-    typedef ScalarColumn<vector<DT> > Base;
+    typedef ScalarColumn<std::vector<DT> > Base;
     const FITS::DataType dType2;
     const char colCode2;
   protected:
-    using ScalarColumn<vector<DT> >::v;
+    using ScalarColumn<std::vector<DT> >::v;
   public:
     ArrayColumn(string name, long length_=-1): 
       Base(name, length_), dType2(FITS::FITSTypeOf<DT>()),
       colCode2(FITS::ColumnCode<DT>()) {}
-    ArrayColumn(const vector<vector<DT> >& in, string name, long length_=-1): 
+    ArrayColumn(const std::vector<std::vector<DT> >& in, string name, long length_=-1):
       Base(in, name, length_), dType2(FITS::FITSTypeOf<DT>()),
       colCode2(FITS::ColumnCode<DT>()) {}
     virtual ColumnBase* duplicate() const {return new ArrayColumn(*this);}
@@ -262,10 +262,10 @@ namespace img {
     virtual char columnCode() const {return colCode2;}
 
     // Need to declare these so they can be specialized for string:
-    virtual long writeCell(const vector<DT>& value, long row) {
+    virtual long writeCell(const std::vector<DT>& value, long row) {
       return Base::writeCell(value,row);
     }
-    virtual long writeCells(const vector<vector<DT> >& values, long rowStart=0) {
+    virtual long writeCells(const std::vector<std::vector<DT> >& values, long rowStart=0) {
       return Base::writeCells(values, rowStart);
     }
 
@@ -274,7 +274,7 @@ namespace img {
       long nRows = rowEnd - rowStart;
       ArrayColumn<DT>* target = 
 	new ArrayColumn<DT>(ColumnBase::name(), 
-			    ScalarColumn<vector<DT> >::stringLength());
+			    ScalarColumn<std::vector<DT> >::stringLength());
       if (nRows>0) target->v.reserve(nRows);
       for (int i=0; i<nRows; i++)
 	target->v.push_back(v[i+rowStart]);
@@ -286,7 +286,7 @@ namespace img {
 			  + ColumnBase::name());
       ArrayColumn<DT>* target =
 	new ArrayColumn<DT>(ColumnBase::name(), 
-			    ScalarColumn<vector<DT> >::stringLength());
+			    ScalarColumn<std::vector<DT> >::stringLength());
       if (nReserve<0) {
 	nReserve = 0;
 	for (std::vector<bool>::const_iterator i=vb.begin();
@@ -304,7 +304,7 @@ namespace img {
   // Override the constructor & writing routines for Array column to check length
   // of strings in arrays of strings
   template<>
-  inline ArrayColumn<string>::ArrayColumn(const vector<vector<string> >& in, string name,
+  inline ArrayColumn<string>::ArrayColumn(const std::vector<std::vector<string> >& in, string name,
 				   long length_):
     Base(name, length_), dType2(FITS::FITSTypeOf<string>()),
     colCode2(FITS::ColumnCode<string>()) {
@@ -317,7 +317,7 @@ namespace img {
 
   template<>
   long
-  inline ArrayColumn<string>::writeCell(const vector<string>& value, long row) {
+  inline ArrayColumn<string>::writeCell(const std::vector<string>& value, long row) {
     if (stringLength()>=0) 
       for (int i=0; i<value.size(); i++)
 	checkLength(value[i]);
@@ -326,7 +326,7 @@ namespace img {
 
   template <>
   long
-  inline ArrayColumn<string>::writeCells(const vector<vector<string> >& values, long rowStart) {
+  inline ArrayColumn<string>::writeCells(const std::vector<std::vector<string> >& values, long rowStart) {
     if (stringLength()>=0) {
       for (int i=0; i<values.size(); i++) 
 	for (int j=0; j<values[i].size(); j++) 
@@ -342,7 +342,7 @@ namespace img {
     using ArrayColumn<DT>::v;
     const int width;
     // Function to pad input array to required width; exception if input too long
-    void checkWidth(const vector<DT>& in) {
+    void checkWidth(const std::vector<DT>& in) {
       if (in.size() > width)
 	FormatAndThrow<FTableError>() 
 	  << "Input of fixed-length array cell is too long for column "
@@ -354,7 +354,7 @@ namespace img {
     FixedArrayColumn(string name, long repeat, long length_=-1): 
       Base(name, length_), width(repeat) {}
     // Initialize with data assumes that all elements have size()<=repeat
-    FixedArrayColumn(const vector<vector<DT> >& in, string name, long repeat, long length_=-1): 
+    FixedArrayColumn(const std::vector<std::vector<DT> >& in, string name, long repeat, long length_=-1):
       Base(name, length_), width(repeat) {
       v.resize(in.size());
       for (long i=0; i<in.size(); i++)
@@ -371,7 +371,7 @@ namespace img {
       FixedArrayColumn<DT>* target = 
 	new FixedArrayColumn<DT>(ColumnBase::name(), 
 				 repeat(),
-				 ScalarColumn<vector<DT> >::stringLength());
+				 ScalarColumn<std::vector<DT> >::stringLength());
       if (nRows>0) target->v.reserve(nRows);
       for (int i=0; i<nRows; i++)
 	target->v.push_back(v[i+rowStart]);
@@ -383,7 +383,7 @@ namespace img {
       FixedArrayColumn<DT>* target = 
 	new FixedArrayColumn<DT>(ColumnBase::name(), 
 				 repeat(),
-				 ScalarColumn<vector<DT> >::stringLength());
+				 ScalarColumn<std::vector<DT> >::stringLength());
       if (nReserve<0) {
 	nReserve = 0;
 	for (std::vector<bool>::const_iterator i=vb.begin();
@@ -397,7 +397,7 @@ namespace img {
       return target;
     }
 
-    virtual long writeCell(const vector<DT>& value, long row) {
+    virtual long writeCell(const std::vector<DT>& value, long row) {
       checkWidth(value);
       if (v.size() < row+1) {
 	// Fill out array with vectors of proper size
@@ -412,7 +412,7 @@ namespace img {
 
     // Override variable-array version with this one to make sure each row
     // is not too long, and is padded out
-    virtual long writeCells(const vector<vector<DT> >& values, long rowStart=0) {
+    virtual long writeCells(const std::vector<std::vector<DT> >& values, long rowStart=0) {
       // extend column to hold data
       if (rowStart + values.size() > v.size()) 
 	insertRows(v.size(), rowStart + values.size() - v.size());
@@ -425,9 +425,9 @@ namespace img {
     // insertBeforeRow = -1 will add row(s) to the end.
     virtual long insertRows(long insertBeforeRow, long insertNumber) {
       if (insertBeforeRow < 0 || insertBeforeRow >= v.size())
-	v.insert(v.end(), insertNumber, vector<DT>(width));
+	v.insert(v.end(), insertNumber, std::vector<DT>(width));
       else
-	v.insert(v.begin()+insertBeforeRow, insertNumber, vector<DT>(width));
+	v.insert(v.begin()+insertBeforeRow, insertNumber, std::vector<DT>(width));
       return v.size();
     }
 
@@ -506,21 +506,21 @@ namespace img {
     }
     ColumnBase* operator[](string colname);
 
-    vector<string> listColumns() const;
+      std::vector<string> listColumns() const;
     bool hasColumn(const string& colname) const;  // Case-insensitive
 
     // ***** Add / remove columns:
 
     // Add new column given the data.
     template<class T>
-    void addColumn(const vector<T>& values, string columnName, 
+    void addColumn(const std::vector<T>& values, string columnName,
 		   long repeat=-1, long stringLength=-1 ) {
       checkLock("addColumn()");
       add(new ScalarColumn<T>(values, columnName, stringLength));
     }
     // Specialization to recognize vector<vector> as array column
     template<class T>
-    void addColumn(const vector<vector<T> >& values, string columnName, 
+    void addColumn(const std::vector<std::vector<T> >& values, string columnName,
 		   long repeat=-1, long stringLength=-1) {
       checkLock();
       if (repeat<0) add(new ArrayColumn<T>(values, columnName, stringLength));
@@ -541,16 +541,16 @@ namespace img {
     // First selects a row range, and also limits columns to those
     // matching one of the regexp's.
     void filter(TableData* td, long rowStart, long rowEnd,
-		const vector<string>& regexps) const;
+		const std::vector<string>& regexps) const;
     // Select rows corresponding to true element of vb:
-    void filterRows(TableData* td, vector<bool>& vb) const;
+    void filterRows(TableData* td, std::vector<bool>& vb) const;
 
     TableData* extract(long rowStart=0, long rowEnd=-1,
-		       const vector<string>& regexps
-		       = vector<string>(1,".*")) const;
+		       const std::vector<string>& regexps
+		       = std::vector<std::string>(1,".*")) const;
 
     template <class VT>
-    bool makeVector(vector<VT>& v, const string& columnName) const {
+    bool makeVector(std::vector<VT>& v, const string& columnName) const {
       return (*this)[columnName]->makeVector(v);
     }
 
@@ -559,11 +559,11 @@ namespace img {
 		    const string& columnName, const Container& keepers) const {
       const ColumnBase* cb = (*this)[columnName];
       typedef typename Container::key_type CT;
-      vector<CT> data;
+      std::vector<CT> data;
       if (! cb->makeVector(data))
 	throw FTableError("In filterRows(), column " + cb->name() + "data type not"
 			  " convertible to container");
-      vector<bool> vb(data.size(), false);
+        std::vector<bool> vb(data.size(), false);
       for (int i=0; i<data.size(); i++)
 	if ( keepers.find(data[i]) != keepers.end()) vb[i] = true;
       filterRows(td, vb);
@@ -571,7 +571,7 @@ namespace img {
 
     // Expression evaluation, convert to type T.  Use Header hh to evaluate scalars.
     template <class T>
-    void evaluate(vector<T>& result,
+    void evaluate(std::vector<T>& result,
 		  const string& expression,
 		  const Header* hh) const;
 
@@ -588,7 +588,7 @@ namespace img {
 
     // Or a range: rowEnd is one-past-last row; -1 means go to end.
     template <class T>
-    void readCells(vector<T>& values, string columnName, 
+    void readCells(std::vector<T>& values, string columnName,
 		   long rowStart=0, long rowEnd=-1) const {
       rangeCheck(rowStart,columnName);
       if (rowEnd>0) rangeCheck(rowEnd-1,columnName);
@@ -597,13 +597,13 @@ namespace img {
 	const ScalarColumn<int>* col2 = dynamic_cast<const ScalarColumn<int>*> ((*this)[columnName]);
 	const ScalarColumn<LONGLONG>* col3 = dynamic_cast<const ScalarColumn<LONGLONG>*> ((*this)[columnName]);
 	const ScalarColumn<long>* col4 = dynamic_cast<const ScalarColumn<long>*> ((*this)[columnName]);
-	/**/cerr << "col " << col << " int? " << col2 << " longlong " << col3 
-		 << " long " << col4 <<  endl;
-	/**/cerr << sizeof(int) << " " << sizeof(long) << " " << sizeof(LONGLONG) << endl;
-	/**/cerr << typeid(long).name() << " LONGLONG: " << typeid(LONGLONG).name() << endl;
-	/**/cerr << FITS::ColumnCode<T>() << " on cccolumn type " << (*this)[columnName]->elementType()
+	/**/std::cerr << "col " << col << " int? " << col2 << " longlong " << col3
+		 << " long " << col4 <<  std::endl;
+	/**/std::cerr << sizeof(int) << " " << sizeof(long) << " " << sizeof(LONGLONG) << std::endl;
+	/**/std::cerr << typeid(long).name() << " LONGLONG: " << typeid(LONGLONG).name() << std::endl;
+	/**/std::cerr << FITS::ColumnCode<T>() << " on cccolumn type " << (*this)[columnName]->elementType()
 		 << " repeat " << (*this)[columnName]->repeat()
-		 << endl;
+          << std::endl;
 	throw FTableError("Type mismatch reading column " + columnName);
       }
       col->readCells(values, rowStart, rowEnd);
@@ -621,7 +621,7 @@ namespace img {
     }
 
     template <class T>
-    void writeCells(const vector<T>& values, string columnName, long rowStart=0) {
+    void writeCells(const std::vector<T>& values, string columnName, long rowStart=0) {
       if (rowStart<0) rangeCheck(rowStart,columnName);
       checkLock("writeCells()");
       ScalarColumn<T>* col = dynamic_cast<ScalarColumn<T>*> ((*this)[columnName]);
@@ -632,7 +632,7 @@ namespace img {
 
     // Specialization to recognize array-valued Cells
     template <class T>
-    void writeCell(const vector<T>& value, string columnName, long row) {
+    void writeCell(const std::vector<T>& value, string columnName, long row) {
       if (row<0) rangeCheck(row,columnName);
       checkLock("writeCell()");
       ArrayColumn<T>* col = dynamic_cast<ArrayColumn<T>*> ((*this)[columnName]);
@@ -642,7 +642,7 @@ namespace img {
     }
 
     template <class T>
-    void writeCells(const vector<vector<T> >& values, string columnName, long rowStart=0) {
+    void writeCells(const std::vector<std::vector<T> >& values, string columnName, long rowStart=0) {
       if (rowStart<0) rangeCheck(rowStart,columnName);
       checkLock("writeCells()");
       ArrayColumn<T>* col = dynamic_cast<ArrayColumn<T>*> ((*this)[columnName]);

@@ -4,6 +4,7 @@
 #include "Hdu.h"
 #include <cctype>
 #include <sstream>
+#include <list>
 
 using namespace FITS;
 
@@ -21,8 +22,8 @@ Hdu::Hdu(const string filename,
 		   hduVersion(0),
 		   hduType(type_),
 		   writeable( !(f==ReadOnly)),
-		   hptr(0),
-		   hcount(0)
+		   hptr(nullptr),
+		   hcount(nullptr)
 {
   HDUType existingType = parent.getHDUType(hduNumber);
   if (existingType != HDUNull && !(f & OverwriteHDU)) {
@@ -30,7 +31,7 @@ Hdu::Hdu(const string filename,
     int status=moveTo();
     char extname[FLEN_CARD];
     *extname=0; // empty C-string
-    fits_read_key(fptr(), Tstring, "EXTNAME", extname, 0, &status);
+    fits_read_key(fptr(), Tstring, "EXTNAME", extname, nullptr, &status);
     if (status==KEY_NO_EXIST) {
       hduName = "";
       flushFitsErrors(status);
@@ -51,8 +52,8 @@ Hdu::Hdu(const string filename,
 		   hduVersion(0),
 		   hduType(type_),
 		   writeable( !(f==ReadOnly)),
-		   hptr(0),
-		   hcount(0)
+		   hptr(nullptr),
+		   hcount(nullptr)
 {
   HDUType existingType = parent.getHDUType(hduName, hduNumber);
   openHDU(f, existingType);
@@ -90,7 +91,7 @@ Hdu::adoptHeader(img::Header* hdr, int* counter) {
 
 
 void 
-Hdu::checkWriteable(string m) const {
+Hdu::checkWriteable(std::string m) const {
   if (isWriteable()) return;
   std::ostringstream oss; 
   oss << "Write action to read-only HDU #" << hduNumber
@@ -314,7 +315,7 @@ Hdu::insertEmpty(int emptyType, int emptyNum, string emptyName) {
 // ** appending a wildcard after each of these.
 
 bool isSpecialKeyword(const string keyword) {
-  static list<string> specialKeys;
+  static std::list<string> specialKeys;
   if (specialKeys.empty()) {
     // Initial list:
     specialKeys.push_back("SIMPLE");
@@ -341,7 +342,7 @@ bool isSpecialKeyword(const string keyword) {
     specialKeys.push_back("EXTNAME");
     specialKeys.push_back("EXTVER");
   }
-  for (list<string>::const_iterator i=specialKeys.begin();
+  for (std::list<string>::const_iterator i=specialKeys.begin();
        i!=specialKeys.end();
        ++i) {
     if (keyword.size() < i->size()) continue;
@@ -390,7 +391,7 @@ readFitsHeader(fitsfile *fptr) {
       break;
     case 'C':
       if (vstring[0]!='\'' || vstring[vstring.size()-1]!='\'')
-	cerr << "no quotes on string: [" << vstring << "]" << endl;
+	std::cerr << "no quotes on string: [" << vstring << "]" << std::endl;
       hh = new img::HdrRecord<string>(keyword,
 				 vstring.substr(1,vstring.size()-2),
 				 comment,
@@ -409,8 +410,8 @@ readFitsHeader(fitsfile *fptr) {
       badstring = hh->setValueString(vstring);
       break;
     case 'X':
-      hh = new img::HdrRecord<complex<double> >(keyword, 
-					  complex<double>(), comment, units);
+      hh = new img::HdrRecord<std::complex<double> >(keyword,
+					  std::complex<double>(), comment, units);
       badstring = hh->setValueString(vstring);
       break;
     default:
@@ -492,7 +493,7 @@ writeFitsHeader(fitsfile *fptr, img::Header *ih) {
 
   }
   // Then write all the COMMENT fields
-  list<string>::const_iterator sptr;
+  std::list<string>::const_iterator sptr;
   for (sptr=ih->comments().begin(); sptr!=ih->comments().end(); ++sptr) {
     strncpy(comment, sptr->c_str(), sizeof(comment));
     comment[sizeof(comment)-1]=0;

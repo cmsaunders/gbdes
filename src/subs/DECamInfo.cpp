@@ -6,7 +6,6 @@
 #include "StringStuff.h"
 
 using namespace decam;
-using namespace std;
 
 string ccdData =
         "# Information on each DECam CCD, (7 July 2013) \n"
@@ -84,18 +83,18 @@ Bounds<int> decam::datasec(const string detpos, const string amp) {
     }
 }
 
-map<string, Device> decam::decamInfo() {
-    map<string, Device> info;
+std::map<string, Device> decam::decamInfo() {
+    std::map<string, Device> info;
     {
-        istringstream iss(ccdData);
+        std::istringstream iss(ccdData);
         string buffer;
         DECamMap map;
         while (getlineNoComment(iss, buffer)) {
-            istringstream iss(buffer);
+            std::istringstream iss(buffer);
             string name;
             Device d;
             if (!(iss >> name >> d.ccdnum >> d.detsecX >> d.detsecY)) {
-                cerr << "Bad Device line: " << buffer << endl;
+                std::cerr << "Bad Device line: " << buffer << std::endl;
                 exit(1);
             }
             map.setDevice(name);
@@ -125,23 +124,23 @@ map<string, Device> decam::decamInfo() {
     return info;
 }
 
-void decam::getDeviceNorms(string filename, map<string, Device> &devices) {
-    ifstream ifs(filename.c_str());
+void decam::getDeviceNorms(string filename, std::map<string, Device> &devices) {
+    std::ifstream ifs(filename.c_str());
     if (!ifs) {
-        cerr << "could not open device norms file " << filename << endl;
+        std::cerr << "could not open device norms file " << filename << std::endl;
         exit(1);
     }
     string buffer;
     while (getlineNoComment(ifs, buffer)) {
-        istringstream iss(buffer);
+        std::istringstream iss(buffer);
         string detpos;
         double norm;
         if (!(iss >> detpos >> norm)) {
-            cerr << "Bad input line in device norm file: <" << buffer << ">" << endl;
+            std::cerr << "Bad input line in device norm file: <" << buffer << ">" << std::endl;
             exit(1);
         }
         if (devices.count(detpos) == 0) {
-            cerr << "Unknown DETPOS in norm file: <" << detpos << ">" << endl;
+            std::cerr << "Unknown DETPOS in norm file: <" << detpos << ">" << std::endl;
             exit(1);
         }
         devices[detpos].norm = norm;
@@ -149,7 +148,7 @@ void decam::getDeviceNorms(string filename, map<string, Device> &devices) {
 }
 
 DECamMap::DECamMap() : prefix("i/"), pixmap(nullptr) {
-    istringstream iss(referenceMap);
+    std::istringstream iss(referenceMap);
     pmc.read(iss);
 
     // Shift all field coordinates so that center of N4 & S4 is origin:

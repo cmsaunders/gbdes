@@ -24,7 +24,7 @@ namespace astrometry {
     enum Coordinate {X,Y,R}; // Which axis is the Table being applied to
 
     // Build a map with zeros at all nodes
-    PiecewiseMap(string name_,
+    PiecewiseMap(std::string name_,
 	     double argStart_,
 	     double argEnd, 
 	     double argStep_,
@@ -34,7 +34,7 @@ namespace astrometry {
 
     // Build a map with starting values
     // Value at first and last nodes is forced to zero.
-    PiecewiseMap(string name_,
+    PiecewiseMap(std::string name_,
 	     double argStart_,
 	     double argStep_,
 	     const DVector& values,
@@ -70,19 +70,18 @@ namespace astrometry {
     virtual DVector getParams() const;
     virtual int nParams() const {return v.size()-2;}
 
-    static string type() {return "Piecewise";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Piecewise";}
+    virtual std::string getType() const {return type();}
 
 #ifdef USE_YAML
     static PixelMap* create(const YAML::Node& node,
 			    bool& defaulted,
-			    string name_="");
+                std::string name_="");
     virtual void write(YAML::Emitter& os) const;
 #endif
     
   private:
-    string name;
-
+    std::string name;
     Coordinate axis;
     // Lookups into the 1d table:
     double lookup(double arg) const;

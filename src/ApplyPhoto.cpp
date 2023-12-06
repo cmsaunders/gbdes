@@ -2,7 +2,7 @@
 #include <sstream>
 #include <map>
 
-#include "Std.h"
+#include "Utils.h"
 #include "StringStuff.h"
 #include "Astrometry.h"
 #include "Header.h"
@@ -10,7 +10,6 @@
 
 #include "FitSubroutines.h"
 
-using namespace std;
 
 string usage =
         "ApplyPhoto: transform magnitudes using solutions from PhotoFit\n"

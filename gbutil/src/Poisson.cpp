@@ -5,7 +5,6 @@
 
 namespace poisson {
 
-  using namespace std;
 
   // From Numerical Recipes:
   template <class T>
@@ -95,7 +94,7 @@ namespace poisson {
   template <class T>
   void gser(T& gamser, const T a, const T x, T& gln) {
     const int ITMAX=200;
-    const T   EPS=numeric_limits<T>::epsilon();
+    const T   EPS=std::numeric_limits<T>::epsilon();
 
     gln=lgamma(a);
     if (x <= 0.0) {
@@ -123,8 +122,8 @@ namespace poisson {
   template <class T>
   void gcf(T& gammcf, const T a, const T x, T& gln) {
     const int ITMAX=100;
-    const T   EPS=numeric_limits<T>::epsilon();
-    const T   FPMIN = numeric_limits<T>::min()/EPS;
+    const T   EPS=std::numeric_limits<T>::epsilon();
+    const T   FPMIN = std::numeric_limits<T>::min()/EPS;
 
     gln=lgamma(a);
     T b=x+1.0-a;

@@ -10,11 +10,10 @@
 #define TABLE_H
 
 #include "Function1d.h"
-#include "Std.h"
+#include "Utils.h"
 
 #include <vector>
 #include <set>
-using std::vector;
 #include <algorithm>
 #include <string>
 #include <sstream>
@@ -23,7 +22,7 @@ using std::vector;
 // Exception classes:
 class TableError: public std::runtime_error {
  public:
-  TableError(const string &m=""): std::runtime_error("Table Error: " +m) {}
+  explicit TableError(const std::string &m=""): std::runtime_error("Table Error: " +m) {}
 };
 class TableOutOfRange: public TableError {
 public:
@@ -31,7 +30,7 @@ public:
 };
 class TableReadError: public TableError {
 public:
-  TableReadError(const string &c): 
+  explicit TableReadError(const std::string &c):
     TableError("Data read error for line ->"+c) {}
 };
 
@@ -59,22 +58,28 @@ class Table: public Function1d<V,A> {
 public:
   enum interpolant {linear, spline, floor, ceil};
   //Construct empty table
-  Table(interpolant i=linear): v(), iType(i), isReady(false) {} 
+  explicit Table(interpolant i=linear): v(), iType(i), isReady(false) {}
   //Table from two arrays:
   Table(const A* argvec, const V* valvec, int N, interpolant in=linear) ;
   Table(const vector<A> &a, const vector<V> &v, interpolant in=linear) ;
-  Table(istream &is, interpolant in=linear): v(), iType(in), isReady(false)
+  explicit Table(std::istream &is, interpolant in=linear): v(), iType(in), isReady(false)
 					     {read(is);}
   void clear() {v.clear(); isReady=false;}
-  void read(istream &is);
-  void addEntry(const A a, const V v) ; //new element for table.
-  V operator() (const A a) const ;	//lookup & interp. function value.
-  V lookup(const A a) const ;	//interp, but exception if beyond bounds
+  void read(std::istream &is);
+  void addEntry(A a, V v) ; //new element for table.
+  V operator() (A a) const ;	//lookup & interp. function value.
+  V lookup(A a) const ;	//interp, but exception if beyond bounds
   int size() const {return v.size();}	//size of table
-  A argMin() const { setup(); if (v.size()>0) return _argMin;
-   else throw TableError("argMin for null Table");}	//Smallest argument
-  A argMax() const { setup(); if (v.size()>0) return _argMax;
-   else throw TableError("argMax for null Table");} 	//Largest argument
+    A argMin() const {
+        setup();
+        if (v.size() > 0) return _argMin;
+        else throw TableError("argMin for null Table");
+    }    //Smallest argument
+    A argMax() const {
+        setup();
+        if (v.size() > 0) return _argMax;
+        else throw TableError("argMax for null Table");
+    }    //Largest argument
 
   template <class T>
   void TransformVal(T &xfrm) {
@@ -84,11 +89,11 @@ public:
   }
 
 /**/void dump() const {for (citer p=v.begin(); p!=v.end(); ++p) 
-		 cout << p->arg << " " << p->val << endl; }
+		 std::cout << p->arg << " " << p->val << std::endl; }
 private:
   typedef TableEntry<V,A> Entry;
-  typedef typename set<Entry>::const_iterator citer;
-  typedef typename set<Entry>::iterator iter;
+  typedef typename std::set<Entry>::const_iterator citer;
+  typedef typename std::set<Entry>::iterator iter;
   const interpolant iType;
 
   mutable std::set<Entry> v;
@@ -96,13 +101,13 @@ private:
   mutable A _argMax;
   mutable citer	lastEntry;	//Element used for last lookup into table.
   mutable bool  isReady;	//Flag if table has been prepped.
-  mutable bool  equalSpaced;	//Flag set if arguments are nearly equally spaced.
+  mutable bool  equalSpaced{};	//Flag set if arguments are nearly equally spaced.
   mutable vector<citer> directIndex;  // Direct access to equal-spaced elements
   mutable A     dx;		// ...in which case this is argument interval
   //get index to 1st element >= argument.  Can throw the exception here.
-  citer upperIndex(const A a) const;
+  citer upperIndex(A a) const;
   void setup() const;	//Do any necessary preparation;
   //Interpolate value btwn p & --p:
-  V interpolate(const A a, const citer p) const; 
+  V interpolate(A a, citer p) const;
 };
 #endif

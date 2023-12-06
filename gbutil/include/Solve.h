@@ -4,7 +4,7 @@
 #ifndef SOLVE_H
 #define SOLVE_H
 
-#include "Std.h"
+#include "Utils.h"
 #include <cmath>
 #include <limits>
 
@@ -12,7 +12,7 @@ namespace solve {
 
   class SolveError: public std::runtime_error {
   public:
-    SolveError(const string m): std::runtime_error("Solve error: "+m) {}
+    SolveError(const std::string m): std::runtime_error("Solve error: "+m) {}
   };
 
   const double defaultTolerance=1.e-7;

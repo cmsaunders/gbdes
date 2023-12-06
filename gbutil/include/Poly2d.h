@@ -2,7 +2,7 @@
 #ifndef POLY2D_H
 #define POLY2D_H
 #include "LinearAlgebra.h"
-#include "Std.h"
+#include "Utils.h"
 
 #ifdef USE_YAML
 #include "yaml-cpp/yaml.h"

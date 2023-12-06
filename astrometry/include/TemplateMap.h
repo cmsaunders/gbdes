@@ -29,15 +29,15 @@ namespace astrometry {
   public:
 
     // Build a template with single lookup table:
-    TemplateMap(string tableName,
-		string filename_,
-		string name_);
+    TemplateMap(std::string tableName,
+                std::string filename_,
+                std::string name_);
 
     // Build a template that has two lookup tables for x above/below the split
     TemplateMap(double xSplit_,
-		string lowName, string highName,
-		string filename_,
-		string name_);
+                std::string lowName, std::string highName,
+                std::string filename_,
+                std::string name_);
 
     ~TemplateMap() {} // Don't delete tables, they belong to cache
 
@@ -67,13 +67,13 @@ namespace astrometry {
     virtual DVector getParams() const {return DVector(1,scaling);}
     virtual int nParams() const {return 1;}
 
-    static string type() {return "Template";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Template";}
+    virtual std::string getType() const {return type();}
 
 #ifdef USE_YAML
     static PixelMap* create(const YAML::Node& node,
 			    bool& defaulted,
-			    string name_="");
+                std::string name_="");
     virtual void write(YAML::Emitter& os) const;
 #endif
     
@@ -86,9 +86,9 @@ namespace astrometry {
     const lookup::Lookup1d* tableHigh;
 
     // Origin of the tabulated data:
-    string tableLowName;
-    string tableHighName;
-    string filename;
+    std::string tableLowName;
+    std::string tableHighName;
+    std::string filename;
 
     // The parameter of this map is multiplicative factor on the table:
     double scaling;

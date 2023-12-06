@@ -21,9 +21,12 @@
 #include <list>
 #include <map>
 #include <set>
-using std::list;
 #include <string>
-#include "Std.h"
+#include <vector>
+#include <iostream>
+
+#include <string>
+#include "Utils.h"
 #include "PhotoMap.h"
 
 #include "yaml-cpp/yaml.h"
@@ -46,10 +49,10 @@ namespace photometry {
   private:
     // The constituent maps and their indices into a master parameter vector,
     // plus an ordinal label in the full collection for each map component:
-    vector<PhotoMap*> vMaps;
-    vector<int> vStartIndices;
-    vector<int> vNSubParams;
-    vector<int> vMapNumbers;  
+    std::vector<PhotoMap*> vMaps;
+    std::vector<int> vStartIndices;
+    std::vector<int> vNSubParams;
+    std::vector<int> vMapNumbers;
 
     bool ownMaps;		// true if we must delete maps on destruction
     int totalFreeParameters;	// Cache this total
@@ -63,7 +66,7 @@ namespace photometry {
   public:
     // If shareMaps = false, SubMap will make and own duplicates of the input maps.
     // Otherwise is will just copy pointers and assume external ownership.
-    SubMap(const list<PhotoMap*>& photoMaps, string name="", bool shareMaps=false); 
+    SubMap(const std::list<PhotoMap*>& photoMaps, std::string name="", bool shareMaps=false);
     virtual ~SubMap();
     // A duplicate of SubMap will have the same sharing policies as its parent.
     // Also, any information on start indices / nSubParams is lost in duplicate.
@@ -88,8 +91,8 @@ namespace photometry {
 				 DVector& derivs) const;
     virtual bool needsColor() const {return anyColor;}
 
-    static string type() {return "Composite";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Composite";}
+    virtual std::string getType() const {return type();}
 
     void write(YAML::Emitter& os) const; // Provided for future convenience,
     // serialization should happen through PhotoMapCollection
@@ -120,45 +123,45 @@ namespace photometry {
     void learn(PhotoMapCollection& source, bool duplicateNamesAreExceptions=false);
 
     // Mark a map as invalid / unused
-    void invalidate(string mapName);
+    void invalidate(std::string mapName);
 
     // Purge all map elements that are only used by invalidated maps
     void purgeInvalid();
 
     // Define a new PhotoMap that is compounding of a list of other PhotoMaps.  Maps
     // are applied to mag in the order they occur in list
-    void defineChain(string chainName, const list<string>& elements);
+    void defineChain(std::string chainName, const std::list<std::string>& elements);
 
     // Return pointer to a SubMap realizing the named coordinate transformation
-    SubMap* issueMap(string mapName);
+    SubMap* issueMap(std::string mapName);
 
     // Like the above, except that they return objects that own themselves and
     // all subcomponents, so this PhotoMapCollection can be destroyed while cloned map remains
     // useful.  All parameters of the cloned objects are free though, and disconnected from the
     // PhotoMapCollection's master parameter vector.
-    PhotoMap* cloneMap(string mapName) const;
+    PhotoMap* cloneMap(std::string mapName) const;
     
     // Reassign all parameter indices and update all issued SubMaps (call whenever
     // setFixed or adding new elements with parameters)
     void rebuildParameterVector();
 
     // Create and read serializations of all the maps or just one
-    void write(ostream& os, string comment="") const;
-    void writeMap(ostream& os, string name, string comment="") const;
+    void write(std::ostream& os, std::string comment="") const;
+    void writeMap(std::ostream& os, std::string name, std::string comment="") const;
 
     // The read returns false if the stream does not appear to be a
     // serialized PhotoMapCollection. True if success; throws exception for format errors.
-    bool read(istream& is, string namePrefix=""); // prefix added to names of all elements
+    bool read(std::istream& is, std::string namePrefix=""); // prefix added to names of all elements
 
     // Fix or free parameters associated with one or more PhotoMap(s).
     // If the chosen map is compound, all components are frozen.
     // This will change parameter index assignments in all issued SubMaps and Wcs's
-    void setFixed(set<string> nameList, bool isFixed=true);
-    void setFixed(string name, bool isFixed=true);
-    bool getFixed(string name) const;
+    void setFixed(std::set<std::string> nameList, bool isFixed=true);
+    void setFixed(std::string name, bool isFixed=true);
+    bool getFixed(std::string name) const;
 
     // Tell whether a map is atomic
-    bool isAtomic(string name) const;
+    bool isAtomic(std::string name) const;
 
     // Set/get the master parameter vector for all PhotoMaps
     void setParams(const DVector& p);
@@ -176,28 +179,28 @@ namespace photometry {
     int nAtomicMaps() const {return atomCount;}
     // Number of maps with free parameters:
     int nFreeMaps() const {return freeCount;}
-    bool mapExists(string name) const {return mapElements.count(name);}
-    vector<string> allMapNames() const;
+    bool mapExists(std::string name) const {return mapElements.count(name);}
+    std::vector<std::string> allMapNames() const;
 
     // Return list of pointers to all map elements needed to fully specify the target.
     // Includes self.  Assumes no dependence cycles.
-    set<string> dependencies(string mapName) const;
+    std::set<std::string> dependencies(std::string mapName) const;
 
     // Return whether the map given by first name depends on
     // a map of the second name.
-    bool dependsOn(const string mapName, const string targetName) const;
+    bool dependsOn(const std::string mapName, const std::string targetName) const;
 
     // Get whether a map has any parameters that are still at defaults,
     // i.e. parameters have not yet been set or fit to any data.
     // (For PhotoMaps, we are not yet tracking defaults ???)
-    bool getDefaulted(string name) const {return false;}
+    bool getDefaulted(std::string name) const {return false;}
 
     // This is a routine useful for debugging: return the name of the atomic
     // map that a certain parameter in the vector belongs to.
-    string atomHavingParameter(int parameterIndex) const;
+    std::string atomHavingParameter(int parameterIndex) const;
     // And a convenience to get the indices of a map's params without
     // having to issue the map.  Returns 0's if map is fixed or compound.
-    void parameterIndicesOf(string mapname, int& startIndex, int& nParams) const;
+    void parameterIndicesOf(std::string mapname, int& startIndex, int& nParams) const;
 
     // This routine adds a new type of PhotoMap to the parsing dictionary
     template <class MapType>
@@ -207,7 +210,7 @@ namespace photometry {
 
     // This is a keyword that must appear in a YAML deserialization to
     // indicate a valid PixelMapCollection
-    static const string magicKey;
+    static const std::string magicKey;
     
   private:
     // hide:
@@ -225,7 +228,7 @@ namespace photometry {
     struct MapElement {
       MapElement(): realization(nullptr), atom(nullptr), isFixed(false), 
 	nParams(0), number(-1), isValid(true) {}
-      list<string> subordinateMaps;  // If it's compound, what it will be made from
+      std::list<std::string> subordinateMaps;  // If it's compound, what it will be made from
       SubMap* realization;	     // pointer to its SubMap, if it's been built
       PhotoMap* atom;		     // Pointer to the PhotoMap itself, if atomic
       int startIndex;		     // Location in the union parameter array
@@ -235,31 +238,31 @@ namespace photometry {
       bool isValid;		     // False if no info available to fit it
     };
 
-    map<string, MapElement> mapElements;  // all known PhotoMaps, indexed by name.
+    std::map<std::string, MapElement> mapElements;  // all known PhotoMaps, indexed by name.
 
     // Remove knowledge of a particular map or WCS and its realization if it exists.
-    void removeMap(string mapName);
+    void removeMap(std::string mapName);
 
     // **** Useful utilities: *****
 
     // See if the chain of dependence of a map has any cycles.  Throws exception if so.
-    void checkCircularDependence(string mapName,
-				 const set<string>& ancestors = set<string>()) const;
+    void checkCircularDependence(std::string mapName,
+				 const std::set<std::string>& ancestors = std::set<std::string>()) const;
 
     // Check that all referenced names exist, and that there are no circular dependences.
     void checkCompleteness() const;
 
     // Produce a list giving the atomic transformation sequence needed to implement a
     // specified map. Assumes no dependence cycles.
-    list<string> orderAtoms(string mapName) const;
+    std::list<std::string> orderAtoms(std::string mapName) const;
 
     // **** Static structures / methods for serialization: ****
     // This routine will write a complete YAML key/value to emitter for this PhotoMap
-    void writeSingleMap(YAML::Emitter& os, const MapElement& mel, string name) const;
-    PhotoMap* createAtomFromNode(const YAML::Node& node, string name) const;
-    typedef PhotoMap* (*Creator)(const YAML::Node& node, string name);
+    void writeSingleMap(YAML::Emitter& os, const MapElement& mel, std::string name) const;
+    PhotoMap* createAtomFromNode(const YAML::Node& node, std::string name) const;
+    typedef PhotoMap* (*Creator)(const YAML::Node& node, std::string name);
     // Static map of what kind of PhotoMaps the parser will be able to identify
-    static map<string,Creator> mapCreators;
+    static std::map<std::string,Creator> mapCreators;
     static bool creatorsInitialized;
     // Call to give parser an initial inventory of map types to create:
     static void PhotoMapTypeInitialize();

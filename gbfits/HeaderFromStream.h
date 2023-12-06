@@ -6,9 +6,10 @@
 #define HDRFROMSTREAM_H
 
 #include "Image.h"
+#include <ostream>
 namespace img {
   Header HeaderFromStream(std::istream& is);
 }
   // This one writes all header cards to stream:
-ostream& operator<<(ostream& os, const img::Header& h);
+std::ostream& operator<<(std::ostream& os, const img::Header& h);
 #endif  // HDRFROMSTREAM_H

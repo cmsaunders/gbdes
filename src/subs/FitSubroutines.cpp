@@ -50,9 +50,9 @@ list<string> splitArgument(string input, const char listSeperator) {
 
 // Read parameters from files on command line and from std input.
 // First nRequiredArgs must be present and are not names of parameter files.
-// Print the usage string (to cerr) and the default parameters (to cout) if
+// Print the usage string (to std::cerr) and the default parameters (to std::cout) if
 // there are not enough parameters.
-// Then dumps final parameter values to cout.
+// Then dumps final parameter values to std::cout.
 void processParameters(Pset &parameters, const string &usage, int nRequiredArgs, int argc, char *argv[]) {
     int positionalArguments;
     try {
@@ -61,23 +61,23 @@ void processParameters(Pset &parameters, const string &usage, int nRequiredArgs,
         positionalArguments = parameters.setFromArguments(argc, argv);
     } catch (std::runtime_error &m) {
         // An error here might indicate someone entered "-help" or something
-        cerr << usage << endl;
-        cout << "#---- Parameter defaults: ----" << endl;
-        parameters.dump(cerr);
+        std::cerr << usage << std::endl;
+        std::cout << "#---- Parameter defaults: ----" << std::endl;
+        parameters.dump(std::cerr);
         quit(m, 1);
     }
     parameters.setDefault();
     if (positionalArguments < nRequiredArgs + 1) {
-        cerr << usage << endl;
-        cout << "#---- Parameter defaults: ----" << endl;
-        parameters.dump(cerr);
+        std::cerr << usage << std::endl;
+        std::cout << "#---- Parameter defaults: ----" << std::endl;
+        parameters.dump(std::cerr);
         throw std::runtime_error(
                 "Number of positional arguments is less than number of required arguments + 1");
     }
 
     for (int i = nRequiredArgs + 1; i < positionalArguments; i++) {
         // Open & read all specified input files
-        ifstream ifs(argv[i]);
+        std::ifstream ifs(argv[i]);
         if (!ifs) {
             std::string argMessage(argv[i], 1);
             throw std::runtime_error("Can't open parameter file " + argMessage + "\n" + usage);
@@ -85,15 +85,15 @@ void processParameters(Pset &parameters, const string &usage, int nRequiredArgs,
         try {
             parameters.setStream(ifs);
         } catch (std::runtime_error &m) {
-            cerr << "In file " << argv[i] << ":" << endl;
+            std::cerr << "In file " << argv[i] << ":" << std::endl;
             quit(m, 1);
         }
     }
     // And now re-read the command-line arguments so they take precedence
     parameters.setFromArguments(argc, argv);
 
-    cout << "#" << stringstuff::taggedCommandLine(argc, argv) << endl;
-    parameters.dump(cout);
+    std::cout << "#" << stringstuff::taggedCommandLine(argc, argv) << std::endl;
+    parameters.dump(std::cout);
 }
 
 // Take a string with this format:
@@ -121,7 +121,7 @@ RegexReplacements parseTranslator(string specString, string errorDescription) {
 
 ExtensionObjectSet::ExtensionObjectSet(string filename) {
     if (filename.empty()) return;
-    ifstream ifs(filename.c_str());
+    std::ifstream ifs(filename.c_str());
     if (!ifs) {
         throw std::runtime_error("Could not open Extension/Object pair file " + filename);
     }
@@ -129,7 +129,7 @@ ExtensionObjectSet::ExtensionObjectSet(string filename) {
     while (stringstuff::getlineNoComment(ifs, buffer)) {
         int extensionNumber;
         long objectNumber;
-        istringstream iss(buffer);
+        std::istringstream iss(buffer);
         if (!(iss >> extensionNumber >> objectNumber)) {
             throw std::runtime_error("Bad Extension/Object pair in " + filename + ": <" + buffer + ">");
         }
@@ -172,7 +172,7 @@ bool isDouble(img::FTable f, string key, int elementNumber) {
             double d;
             f.readCell(d, key, 0);
         } else {
-            vector<double> d;
+            std::vector<double> d;
             f.readCell(d, key, 0);
         }
     } catch (img::FTableError &e) {
@@ -187,7 +187,7 @@ double getTableDouble(img::FTable f, string key, int elementNumber, bool isDoubl
         if (elementNumber < 0) {
             f.readCell(out, key, irow);
         } else {
-            vector<double> v;
+            std::vector<double> v;
             f.readCell(v, key, irow);
             if (elementNumber >= v.size()) {
                 throw std::runtime_error("Requested element " + std::to_string(elementNumber) +
@@ -202,7 +202,7 @@ double getTableDouble(img::FTable f, string key, int elementNumber, bool isDoubl
             f.readCell(fl, key, irow);
             out = fl;
         } else {
-            vector<float> v;
+            std::vector<float> v;
             f.readCell(v, key, irow);
             if (elementNumber >= v.size()) {
                 throw std::runtime_error("Requested element " + std::to_string(elementNumber) +
@@ -219,8 +219,8 @@ double getTableDouble(img::FTable f, string key, int elementNumber, bool isDoubl
 // Start with list of free & fixed devices as initial degen/ok, same for exposures.
 // Will consider as "ok" any device used in an "ok" exposure and vice-versa.
 // The last argument says which exposure/device pairs are used together.
-void findDegeneracies(set<int> &degenerateDevices, set<int> &okDevices, set<int> &degenerateExposures,
-                      set<int> &okExposures, const vector<set<int>> &exposuresUsingDevice) {
+void findDegeneracies(std::set<int> &degenerateDevices, std::set<int> &okDevices, std::set<int> &degenerateExposures,
+                      std::set<int> &okExposures, const std::vector<std::set<int>> &exposuresUsingDevice) {
     // Device/exposures with degeneracy broken this round
     auto nowOkDevices = okDevices;
     auto nowOkExposures = okExposures;
@@ -258,7 +258,7 @@ void findDegeneracies(set<int> &degenerateDevices, set<int> &okDevices, set<int>
 
 // Figure out which extensions of the FITS file inputTables
 // are Instrument or MatchCatalog extensions.
-void inventoryFitsTables(string inputTables, vector<int> &instrumentHDUs, vector<int> &catalogHDUs) {
+void inventoryFitsTables(string inputTables, std::vector<int> &instrumentHDUs, std::vector<int> &catalogHDUs) {
     FITS::FitsFile ff(inputTables);
     for (int i = 1; i < ff.HDUCount(); i++) {
         FITS::Hdu h(inputTables, FITS::HDUAny, i);
@@ -269,7 +269,7 @@ void inventoryFitsTables(string inputTables, vector<int> &instrumentHDUs, vector
     }
 }
 
-Fields::Fields(vector<string> names, vector<double> ra, vector<double> dec, vector<double> epochs)
+Fields::Fields(std::vector<string> names, std::vector<double> ra, std::vector<double> dec, std::vector<double> epochs)
         : _names(), _projections(), _epochs(std::move(epochs)) {
     // TODO: check that sizes are consistent, raise if they are not.
     _projections.reserve(names.size());
@@ -290,13 +290,13 @@ Fields Fields::read(string inputTables, string outCatalog, double defaultEpoch) 
     FITS::FitsTable out(outCatalog, FITS::ReadWrite + FITS::OverwriteFile + FITS::Create, "Fields");
     img::FTable ft = in.extract();
     out.adopt(ft);
-    vector<double> ra;
-    vector<double> dec;
-    vector<string> name;
+    std::vector<double> ra;
+    std::vector<double> dec;
+    std::vector<std::string> name;
     ft.readCells(name, "Name");
     ft.readCells(ra, "RA");
     ft.readCells(dec, "Dec");
-    vector<double> epochs;
+    std::vector<double> epochs;
     if (ft.hasColumn("PM_EPOCH")) {
         ft.readCells(epochs, "PM_EPOCH");
         // Set reference epochs for each field to defaultEpoch if
@@ -325,10 +325,10 @@ Fields Fields::read(string inputTables, string outCatalog, double defaultEpoch) 
 // The useInstrumentList entries are regexes, empty means use all.
 // The final bool argument is set true if we have already created
 // the outCatalog FITS file.
-vector<unique_ptr<Instrument>> readInstruments(const vector<int> &instrumentHDUs,
+std::vector<std::unique_ptr<Instrument>> readInstruments(const std::vector<int> &instrumentHDUs,
                                                const list<string> &useInstrumentList, string inputTables,
                                                string outCatalog, bool &outputCatalogAlreadyOpen) {
-    vector<unique_ptr<Instrument>> instruments;
+    std::vector<std::unique_ptr<Instrument>> instruments;
     for (int iextn : instrumentHDUs) {
         FITS::FitsTable ft(inputTables, FITS::ReadOnly, iextn);
         Assert(stringstuff::nocaseEqual(ft.getName(), "Instrument"));
@@ -337,7 +337,7 @@ vector<unique_ptr<Instrument>> readInstruments(const vector<int> &instrumentHDUs
         int instrumentNumber;
         if (!ft.header()->getValue("Name", instrumentName) ||
             !ft.header()->getValue("Number", instrumentNumber)) {
-            cerr << "Could not read name and/or number of instrument at extension " << iextn << endl;
+            std::cerr << "Could not read name and/or number of instrument at extension " << iextn << std::endl;
         }
         if (instrumentNumber >= instruments.size()) {
             int oldsize = instruments.size();
@@ -359,7 +359,7 @@ vector<unique_ptr<Instrument>> readInstruments(const vector<int> &instrumentHDUs
 
         if (regexMatchAny(useInstrumentList, instrumentName)) {
             // This is an instrument we will use.  Make an Instrument instance
-            auto instptr = unique_ptr<Instrument>(new Instrument(instrumentName));
+            auto instptr = std::unique_ptr<Instrument>(new Instrument(instrumentName));
             string band;
             if (!ff.header()->getValue("Band", band)) {
                 instptr->band = instptr->name;  // Use instrument name for BAND if not found
@@ -368,11 +368,11 @@ vector<unique_ptr<Instrument>> readInstruments(const vector<int> &instrumentHDUs
                 instptr->band = band;
             }
 
-            vector<string> devnames;
-            vector<double> vxmin;
-            vector<double> vxmax;
-            vector<double> vymin;
-            vector<double> vymax;
+            std::vector<string> devnames;
+            std::vector<double> vxmin;
+            std::vector<double> vxmax;
+            std::vector<double> vymin;
+            std::vector<double> vymax;
             ff.readCells(devnames, "Name");
             ff.readCells(vxmin, "XMin");
             ff.readCells(vxmax, "XMax");
@@ -390,9 +390,9 @@ vector<unique_ptr<Instrument>> readInstruments(const vector<int> &instrumentHDUs
 }
 
 // Read the Exposure table into an array.
-vector<unique_ptr<Exposure>> readExposures(const vector<unique_ptr<Instrument>> &instruments,
-                                           const vector<double> &fieldEpochs,
-                                           vector<int> &exposureColorPriorities,
+std::vector<std::unique_ptr<Exposure>> readExposures(const std::vector<std::unique_ptr<Instrument>> &instruments,
+                                           const std::vector<double> &fieldEpochs,
+                                                     std::vector<int> &exposureColorPriorities,
                                            const list<string> &useColorList, string inputTables,
                                            string outCatalog, const list<string> &skipExposureList,
                                            bool useReferenceExposures, bool &outputCatalogAlreadyOpen) {
@@ -406,29 +406,29 @@ vector<unique_ptr<Exposure>> readExposures(const vector<unique_ptr<Instrument>> 
     FITS::FitsTable out(outCatalog, outFlags, "Exposures");
     img::FTable ff = ft.extract();
     out.adopt(ff);
-    vector<string> names;
-    vector<double> ra;
-    vector<double> dec;
-    vector<int> fieldNumber;
-    vector<int> instrumentNumber;
-    vector<double> airmass;
-    vector<double> exptime;
-    vector<double> mjd;
-    vector<double> apcorr;
-    vector<string> epoch;
-    vector<vector<double>> observatory;
-    vector<vector<double>> astrometricCovariance;
-    vector<double> photometricVariance;
-    vector<double> weight;
-    vector<double> magWeight;
-    vector<double> syserr_mmag;  // Photometric systematic error, mmag
-    vector<double> syserr_mas;   // astrometric sys err, mas (if circular)
-    vector<double> syserr_xx;    // astrometric sys error ellipse (mas^2)
-    vector<double> syserr_yy;
-    vector<double> syserr_xy;
-    vector<double> observatory_x;  // Observatory barycentric ICRS posn (AU)
-    vector<double> observatory_y;
-    vector<double> observatory_z;
+    std::vector<std::string> names;
+    std::vector<double> ra;
+    std::vector<double> dec;
+    std::vector<int> fieldNumber;
+    std::vector<int> instrumentNumber;
+    std::vector<double> airmass;
+    std::vector<double> exptime;
+    std::vector<double> mjd;
+    std::vector<double> apcorr;
+    std::vector<string> epoch;
+    std::vector<std::vector<double>> observatory;
+    std::vector<std::vector<double>> astrometricCovariance;
+    std::vector<double> photometricVariance;
+    std::vector<double> weight;
+    std::vector<double> magWeight;
+    std::vector<double> syserr_mmag;  // Photometric systematic error, mmag
+    std::vector<double> syserr_mas;   // astrometric sys err, mas (if circular)
+    std::vector<double> syserr_xx;    // astrometric sys error ellipse (mas^2)
+    std::vector<double> syserr_yy;
+    std::vector<double> syserr_xy;
+    std::vector<double> observatory_x;  // Observatory barycentric ICRS posn (AU)
+    std::vector<double> observatory_y;
+    std::vector<double> observatory_z;
 
     ff.readCells(names, "Name");
     ff.readCells(ra, "RA");
@@ -476,7 +476,7 @@ vector<unique_ptr<Exposure>> readExposures(const vector<unique_ptr<Instrument>> 
     try {
         ff.readCells(syserr_mas, "syserrmas");
         // Convert this syserr to a diagonal matrix
-        vector<double> vv(3);
+        std::vector<double> vv(3);
         astrometricCovariance.clear();
         for (int i = 0; i < syserr_mas.size(); i++) {
             double stdev = syserr_mas[i] * astrometry::RESIDUAL_UNIT / astrometry::WCS_UNIT;
@@ -496,7 +496,7 @@ vector<unique_ptr<Exposure>> readExposures(const vector<unique_ptr<Instrument>> 
         // it is nonzero.
         bool fresh = astrometricCovariance.empty();
         const double factor = pow(astrometry::RESIDUAL_UNIT / astrometry::WCS_UNIT, 2.);
-        vector<double> vv(3);
+        std::vector<double> vv(3);
         if (fresh) {
             astrometricCovariance.resize(syserr_xx.size());
         }
@@ -529,7 +529,7 @@ vector<unique_ptr<Exposure>> readExposures(const vector<unique_ptr<Instrument>> 
         ff.readCells(observatory_z, "obsz");
         // Have all three columns if we make it here.
         observatory.resize(observatory_x.size());
-        vector<double> vv(3);
+        std::vector<double> vv(3);
         for (int i = 0; i < observatory_x.size(); i++) {
             vv[0] = observatory_x[i];
             vv[1] = observatory_y[i];
@@ -547,8 +547,8 @@ vector<unique_ptr<Exposure>> readExposures(const vector<unique_ptr<Instrument>> 
     }
 
     // Initialize our output arrays to not-in-use values
-    vector<unique_ptr<Exposure>> exposures(names.size());
-    exposureColorPriorities = vector<int>(names.size(), -1);
+    std::vector<std::unique_ptr<Exposure>> exposures(names.size());
+    exposureColorPriorities = std::vector<int>(names.size(), -1);
     for (int i = 0; i < names.size(); i++) {
         spaceReplace(names[i]);
 
@@ -576,7 +576,7 @@ vector<unique_ptr<Exposure>> readExposures(const vector<unique_ptr<Instrument>> 
             // The projection we will use for this exposure:
             astrometry::Gnomonic gn(
                     astrometry::Orientation(astrometry::SphericalICRS(ra[i] * WCS_UNIT, dec[i] * WCS_UNIT)));
-            unique_ptr<Exposure> expo(new Exposure(names[i], gn));
+            std::unique_ptr<Exposure> expo(new Exposure(names[i], gn));
             expo->field = fieldNumber[i];
             expo->instrument = instrumentNumber[i];
             expo->airmass = airmass[i];
@@ -610,8 +610,8 @@ vector<unique_ptr<Exposure>> readExposures(const vector<unique_ptr<Instrument>> 
 
 template <class S>
 void fixMapComponents(typename S::Collection &pmc, const list<string> &fixMapList,
-                      const vector<unique_ptr<Instrument>> &instruments) {
-    set<string> fixTheseMaps;
+                      const std::vector<std::unique_ptr<Instrument>> &instruments) {
+    std::set<string> fixTheseMaps;
     for (auto iName : pmc.allMapNames()) {
         if (stringstuff::regexMatchAny(fixMapList, iName)) fixTheseMaps.insert(iName);
     }
@@ -630,12 +630,12 @@ void fixMapComponents(typename S::Collection &pmc, const list<string> &fixMapLis
     pmc.setFixed(fixTheseMaps);
 }
 
-vector<shared_ptr<astrometry::Wcs>> readWCSs(const img::FTable &extensionTable) {
-    // cerr << inputTables << endl;
+std::vector<std::shared_ptr<astrometry::Wcs>> readWCSs(const img::FTable &extensionTable) {
+    // std::cerr << inputTables << std::endl;
     // FITS::FitsTable ft(inputTables, FITS::ReadOnly, "Extensions");
-    // cerr << "rW 1" << endl;
+    // std::cerr << "rW 1" << std::endl;
     // img::FTable extensionTable = ft.extract();
-    vector<shared_ptr<astrometry::Wcs>> WCSs(extensionTable.nrows());
+    std::vector<std::shared_ptr<astrometry::Wcs>> WCSs(extensionTable.nrows());
 
     for (int i = 0; i < extensionTable.nrows(); i++) {
         // Create the starting WCS for the exposure
@@ -645,31 +645,31 @@ vector<shared_ptr<astrometry::Wcs>> readWCSs(const img::FTable &extensionTable) 
             // Create a Wcs that just takes input as RA and Dec in degrees;
             astrometry::IdentityMap identity;
             astrometry::SphericalICRS icrs;
-            WCSs[i] = shared_ptr<astrometry::Wcs>(
+            WCSs[i] = std::shared_ptr<astrometry::Wcs>(
                     new astrometry::Wcs(&identity, icrs, "ICRS_degrees", WCS_UNIT));
         } else {
-            istringstream iss(s);
+            std::istringstream iss(s);
             astrometry::PixelMapCollection pmcTemp;
             if (!pmcTemp.read(iss)) {
                 throw std::runtime_error("Could not deserialize starting WCS for extension #" +
                                          std::to_string(i));
             }
             string wcsName = pmcTemp.allWcsNames().front();
-            shared_ptr<astrometry::Wcs> tmp(pmcTemp.cloneWcs(wcsName));
-            WCSs[i] = shared_ptr<astrometry::Wcs>(pmcTemp.cloneWcs(wcsName));
+            std::shared_ptr<astrometry::Wcs> tmp(pmcTemp.cloneWcs(wcsName));
+            WCSs[i] = std::shared_ptr<astrometry::Wcs>(pmcTemp.cloneWcs(wcsName));
         }
     }
     return WCSs;
 }
 
 template <class S>
-vector<unique_ptr<typename S::Extension>> readExtensions(
-        const img::FTable &extensionTable, const vector<unique_ptr<Instrument>> &instruments,
-        const vector<unique_ptr<Exposure>> &exposures, const vector<int> &exposureColorPriorities,
-        vector<unique_ptr<typename S::ColorExtension>> &colorExtensions, astrometry::YAMLCollector &inputYAML,
+std::vector<std::unique_ptr<typename S::Extension>> readExtensions(
+        const img::FTable &extensionTable, const std::vector<std::unique_ptr<Instrument>> &instruments,
+        const std::vector<std::unique_ptr<Exposure>> &exposures, const std::vector<int> &exposureColorPriorities,
+        std::vector<std::unique_ptr<typename S::ColorExtension>> &colorExtensions, astrometry::YAMLCollector &inputYAML,
         bool logging) {
-    vector<unique_ptr<typename S::Extension>> extensions(extensionTable.nrows());
-    colorExtensions = vector<unique_ptr<typename S::ColorExtension>>(extensionTable.nrows());
+    std::vector<std::unique_ptr<typename S::Extension>> extensions(extensionTable.nrows());
+    colorExtensions = std::vector<std::unique_ptr<typename S::ColorExtension>>(extensionTable.nrows());
     int processed = 0;
 
 #ifdef _OPENMP
@@ -687,7 +687,7 @@ vector<unique_ptr<typename S::Extension>> readExtensions(
         // Determine whether this extension might be used to provide colors
         int colorPriority = exposureColorPriorities[iExposure];
         if (colorPriority >= 0) {
-            unique_ptr<typename S::ColorExtension> ce(new typename S::ColorExtension);
+            std::unique_ptr<typename S::ColorExtension> ce(new typename S::ColorExtension);
             ce->priority = colorPriority;
             colorExtensions[i] = std::move(ce);
         }
@@ -698,7 +698,7 @@ vector<unique_ptr<typename S::Extension>> readExtensions(
 #pragma omp critical(processed)
 #endif
         ++processed;
-        unique_ptr<typename S::Extension> extn(new typename S::Extension);
+        std::unique_ptr<typename S::Extension> extn(new typename S::Extension);
         extn->exposure = iExposure;
         const Exposure &expo = *exposures[iExposure];
 
@@ -707,7 +707,7 @@ vector<unique_ptr<typename S::Extension>> readExtensions(
         int iDevice;
         extensionTable.readCell(iDevice, "Device", i);
         if (logging && processed % 1000 == 0) {
-            cerr << "...Extn " << i << "/" << extensions.size() << " " << expo.name << endl;
+            std::cerr << "...Extn " << i << "/" << extensions.size() << " " << expo.name << std::endl;
         }
         extn->device = iDevice;
         extn->airmass = expo.airmass;
@@ -724,7 +724,7 @@ vector<unique_ptr<typename S::Extension>> readExtensions(
             extn->startWcs = std::unique_ptr<astrometry::Wcs>(
                     new astrometry::Wcs(&identity, icrs, "ICRS_degrees", WCS_UNIT));
         } else {
-            istringstream iss(s);
+            std::istringstream iss(s);
             astrometry::PixelMapCollection pmcTemp;
             if (!pmcTemp.read(iss)) {
                 throw std::runtime_error("Could not deserialize starting WCS for extension #" +
@@ -780,18 +780,18 @@ vector<unique_ptr<typename S::Extension>> readExtensions(
 // being studied, and the exposure/extension tables.
 
 template <class S>
-int findCanonical(Instrument &instr, int iInst, vector<unique_ptr<Exposure>> &exposures,
-                  vector<unique_ptr<typename S::Extension>> &extensions, typename S::Collection &pmc) {
+int findCanonical(Instrument &instr, int iInst, std::vector<std::unique_ptr<Exposure>> &exposures,
+                  std::vector<std::unique_ptr<typename S::Extension>> &extensions, typename S::Collection &pmc) {
     // Classify the device maps for this instrument
-    set<int> fixedDevices;
-    set<int> freeDevices;
-    set<int> unusedDevices;
+    std::set<int> fixedDevices;
+    std::set<int> freeDevices;
+    std::set<int> unusedDevices;
 
     // And the exposure maps as well:
-    set<int> fixedExposures;
-    set<int> freeExposures;
-    set<int> unusedExposures;
-    set<int> itsExposures;  // All exposure numbers using this instrument
+    std::set<int> fixedExposures;
+    std::set<int> freeExposures;
+    std::set<int> unusedExposures;
+    std::set<int> itsExposures;  // All exposure numbers using this instrument
 
     for (int iDev = 0; iDev < instr.nDevices; iDev++) {
         string mapName = instr.name + "/" + instr.deviceNames.nameOf(iDev);
@@ -824,7 +824,7 @@ int findCanonical(Instrument &instr, int iInst, vector<unique_ptr<Exposure>> &ex
 
     // Now take an inventory of all extensions to see which device
     // solutions are used in coordination with which exposure solutions
-    vector<set<int>> exposuresUsingDevice(instr.nDevices);
+    std::vector<std::set<int>> exposuresUsingDevice(instr.nDevices);
     for (auto const &extnptr : extensions) {
         if (!extnptr) continue;  // Extension not in use.
         int iExpo = extnptr->exposure;
@@ -910,9 +910,9 @@ int findCanonical(Instrument &instr, int iInst, vector<unique_ptr<Exposure>> &ex
 // The names of all maps are already in the extension list.
 // !! Returns the number of seconds spent in critical loop parts of addMap
 template <class S>
-void createMapCollection(const vector<unique_ptr<Instrument>> &instruments,
-                         const vector<unique_ptr<Exposure>> &exposures,
-                         const vector<unique_ptr<typename S::Extension>> &extensions,
+void createMapCollection(const std::vector<std::unique_ptr<Instrument>> &instruments,
+                         const std::vector<std::unique_ptr<Exposure>> &exposures,
+                         const std::vector<std::unique_ptr<typename S::Extension>> &extensions,
                          astrometry::YAMLCollector &inputYAML, typename S::Collection &pmc) {
     double criticalTime = 0.;
 #ifdef _OPENMP
@@ -939,25 +939,25 @@ void createMapCollection(const vector<unique_ptr<Instrument>> &instruments,
                                      extnptr->mapName);
         }
     }  // End extension loop
-    cout << "**Time in addMap critical regions:" << criticalTime << endl;
+    std::cout << "**Time in addMap critical regions:" << criticalTime << std::endl;
     {
         Stopwatch timer;
         timer.start();
-        istringstream iss(inputYAML.dump());
+        std::istringstream iss(inputYAML.dump());
         timer.stop();
-        cout << "Dumping time: " << timer << endl;
+        std::cout << "Dumping time: " << timer << std::endl;
         timer.reset();
         timer.start();
         if (!pmc.read(iss)) {
             throw std::runtime_error("Failure parsing the final YAML map specs");
         }
         timer.stop();
-        cout << "Loading time: " << timer << endl;
+        std::cout << "Loading time: " << timer << std::endl;
     }
 }
 
 template <class S>
-void whoNeedsColor(const vector<unique_ptr<typename S::Extension>> &extensions) {
+void whoNeedsColor(const std::vector<std::unique_ptr<typename S::Extension>> &extensions) {
     for (auto const &extnptr : extensions) {
         if (extnptr) {
             extnptr->needsColor = extnptr->map->needsColor();
@@ -969,13 +969,13 @@ void whoNeedsColor(const vector<unique_ptr<typename S::Extension>> &extensions) 
 // objects from it that need to be read from catalog.
 
 template <class S>
-void readMatches(const vector<int> &seq, const vector<LONGLONG> &extn, const vector<LONGLONG> &obj,
-                 typename S::MCat &matches, const vector<unique_ptr<typename S::Extension>> &extensions,
-                 const vector<unique_ptr<typename S::ColorExtension>> &colorExtensions,
+void readMatches(const std::vector<int> &seq, const std::vector<LONGLONG> &extn, const std::vector<LONGLONG> &obj,
+                 typename S::MCat &matches, const std::vector<std::unique_ptr<typename S::Extension>> &extensions,
+                 const std::vector<std::unique_ptr<typename S::ColorExtension>> &colorExtensions,
                  const ExtensionObjectSet &skipSet, int minMatches, bool usePM) {
     // Smaller collections for each match
-    vector<long> matchExtns;
-    vector<long> matchObjs;
+    std::vector<long> matchExtns;
+    std::vector<long> matchObjs;
     // These variables determine what the highest-priority color information available
     // in the match is so far.
     long matchColorExtension = -1;
@@ -1003,10 +1003,10 @@ void readMatches(const vector<int> &seq, const vector<LONGLONG> &extn, const vec
 
             if (nValid >= minMatches) {
                 // Make a match from the valid entries, and note need to get data for the detections and color
-                unique_ptr<typename S::Match> m;
+                std::unique_ptr<typename S::Match> m;
                 for (int j = 0; j < matchExtns.size(); j++) {
                     if (matchExtns[j] < 0) continue;  // Skip detections starved of their color
-                    unique_ptr<typename S::Detection> d(new typename S::Detection);
+                    std::unique_ptr<typename S::Detection> d(new typename S::Detection);
                     d->catalogNumber = matchExtns[j];
                     d->objectNumber = matchObjs[j];
                     extensions[matchExtns[j]]->keepers.insert(
@@ -1063,12 +1063,12 @@ void readMatches(const vector<int> &seq, const vector<LONGLONG> &extn, const vec
 
 template <class S>
 void readMatches(const img::FTable &table, typename S::MCat &matches,
-                 const vector<unique_ptr<typename S::Extension>> &extensions,
-                 const vector<unique_ptr<typename S::ColorExtension>> &colorExtensions,
+                 const std::vector<std::unique_ptr<typename S::Extension>> &extensions,
+                 const std::vector<std::unique_ptr<typename S::ColorExtension>> &colorExtensions,
                  const ExtensionObjectSet &skipSet, int minMatches, bool usePM) {
-    vector<int> seq;
-    vector<LONGLONG> extn;
-    vector<LONGLONG> obj;
+    std::vector<int> seq;
+    std::vector<LONGLONG> extn;
+    std::vector<LONGLONG> obj;
     table.readCells(seq, "sequenceNumber");
     table.readCells(extn, "extension");
     table.readCells(obj, "object");
@@ -1078,7 +1078,7 @@ void readMatches(const img::FTable &table, typename S::MCat &matches,
 // Subroutine to get what we want from a catalog entry for WCS fitting
 void Astro::fillDetection(Astro::Detection &d, const Exposure &e,
                           astrometry::SphericalCoords &fieldProjection, const img::FTable &table, long irow,
-                          string xKey, string yKey, const vector<string> &xyErrKeys, string magKey,
+                          string xKey, string yKey, const std::vector<string> &xyErrKeys, string magKey,
                           string magErrKey, int magKeyElement, int magErrKeyElement, bool xColumnIsDouble,
                           bool yColumnIsDouble, bool errorColumnIsDouble, bool magColumnIsDouble,
                           bool magErrColumnIsDouble, double magshift, const astrometry::PixelMap *startWcs,
@@ -1105,8 +1105,8 @@ void Astro::fillDetection(Astro::Detection &d, const Exposure &e,
             cov(0, 1) = getTableDouble(table, xyErrKeys[2], -1, errorColumnIsDouble, irow);
             cov(1, 0) = cov(0, 1);
         } else {
-            for (auto s : xyErrKeys) cerr << " --- " << s;
-            cerr << " ---" << endl;
+            for (auto s : xyErrKeys) std::cerr << " --- " << s;
+            std::cerr << " ---" << std::endl;
             throw AstrometryError("Invalid number of xyErrKeys passed to fillDetection");
         }
         cov = dwdp * cov * dwdp.transpose();  // Note this converts to world units (degrees)
@@ -1122,14 +1122,14 @@ void Astro::fillDetection(Astro::Detection &d, const Exposure &e,
 }
 
 // This one reads a full 5d stellar solution
-unique_ptr<astrometry::PMDetection> Astro::makePMDetection(astrometry::Detection const &d, const Exposure &e,
+std::unique_ptr<astrometry::PMDetection> Astro::makePMDetection(astrometry::Detection const &d, const Exposure &e,
                                                            const img::FTable &table, long irow, string xKey,
                                                            string yKey, string pmRaKey, string pmDecKey,
                                                            string parallaxKey, string pmCovKey,
                                                            bool xColumnIsDouble, bool yColumnIsDouble,
                                                            bool errorColumnIsDouble,
                                                            const astrometry::PixelMap *startWcs) {
-    unique_ptr<astrometry::PMDetection> out(new astrometry::PMDetection);
+    std::unique_ptr<astrometry::PMDetection> out(new astrometry::PMDetection);
     out->catalogNumber = d.catalogNumber;
     out->objectNumber = d.objectNumber;
     out->map = d.map;
@@ -1176,7 +1176,7 @@ unique_ptr<astrometry::PMDetection> Astro::makePMDetection(astrometry::Detection
     astrometry::PMCovariance pmCov;      // Covariance from catalog
     astrometry::PMCovariance dwdp5(0.);  // 5d transformation matrix to world coords
     if (errorColumnIsDouble) {
-        vector<double> tmp;
+        std::vector<double> tmp;
         table.readCell(tmp, pmCovKey, irow);
         int k = 0;
         for (int i = 0; i < 5; i++) {
@@ -1186,7 +1186,7 @@ unique_ptr<astrometry::PMDetection> Astro::makePMDetection(astrometry::Detection
             }
         }
     } else {
-        vector<float> tmp;
+        std::vector<float> tmp;
         table.readCell(tmp, pmCovKey, irow);
         int k = 0;
         for (int i = 0; i < 5; i++) {
@@ -1245,7 +1245,7 @@ unique_ptr<astrometry::PMDetection> Astro::makePMDetection(astrometry::Detection
     return out;
 }
 
-void Astro::handlePMDetection(unique_ptr<astrometry::PMDetection> pmd, Astro::Detection const &d) {
+void Astro::handlePMDetection(std::unique_ptr<astrometry::PMDetection> pmd, Astro::Detection const &d) {
     auto mm = d.itsMatch;
     if (dynamic_cast<astrometry::PMMatch *>(mm)) {
         // If this Detection is being used in a PMMatch,
@@ -1255,26 +1255,26 @@ void Astro::handlePMDetection(unique_ptr<astrometry::PMDetection> pmd, Astro::De
     } else {
         // PMDetection is being used in non-PM Match.  Slice it down
         // to pure Detection info, replace old detection with it.
-        unique_ptr<Astro::Detection> dd(new Astro::Detection(std::move(*pmd)));
+        std::unique_ptr<Astro::Detection> dd(new Astro::Detection(std::move(*pmd)));
         mm->remove(d);
         mm->add(std::move(dd));
     }
 }
 
-unique_ptr<astrometry::Match> Astro::makeNewMatch(unique_ptr<Astro::Detection> d, bool usePM) {
+std::unique_ptr<astrometry::Match> Astro::makeNewMatch(std::unique_ptr<Astro::Detection> d, bool usePM) {
     if (usePM) {
         // Make a PMMatch
-        return unique_ptr<Match>(new astrometry::PMMatch(std::move(d)));
+        return std::unique_ptr<Match>(new astrometry::PMMatch(std::move(d)));
     } else {
         // Plain old Match
-        return unique_ptr<Match>(new Match(std::move(d)));
+        return std::unique_ptr<Match>(new Match(std::move(d)));
     }
 }
 
 // And a routine to get photometric information too
 void Photo::fillDetection(Photo::Detection &d, const Exposure &e,
                           astrometry::SphericalCoords &fieldProjection, const img::FTable &table, long irow,
-                          string xKey, string yKey, const vector<string> &xyErrKeys, string magKey,
+                          string xKey, string yKey, const std::vector<string> &xyErrKeys, string magKey,
                           string magErrKey, int magKeyElement, int magErrKeyElement, bool xColumnIsDouble,
                           bool yColumnIsDouble, bool errorColumnIsDouble, bool magColumnIsDouble,
                           bool magErrColumnIsDouble, double magshift, const astrometry::PixelMap *startWcs,
@@ -1288,7 +1288,7 @@ void Photo::fillDetection(Photo::Detection &d, const Exposure &e,
     double sigma = getTableDouble(table, magErrKey, magErrKeyElement, magErrColumnIsDouble, irow);
 
     if (isnan(d.magIn) || isinf(d.magIn)) {
-        cerr << "** NaN input at row " << irow << endl;
+        std::cerr << "** NaN input at row " << irow << std::endl;
         d.isClipped = true;
         d.magIn = 0.;
     }
@@ -1308,9 +1308,9 @@ void Photo::fillDetection(Photo::Detection &d, const Exposure &e,
 // Read each Extension's objects' data from it FITS catalog
 // and place into Detection structures.
 template <class S>
-void readObjects(const img::FTable &extensionTable, const vector<unique_ptr<Exposure>> &exposures,
-                 const vector<unique_ptr<typename S::Extension>> &extensions,
-                 const vector<unique_ptr<astrometry::SphericalCoords>> &fieldProjections, bool logging) {
+void readObjects(const img::FTable &extensionTable, const std::vector<std::unique_ptr<Exposure>> &exposures,
+                 const std::vector<std::unique_ptr<typename S::Extension>> &extensions,
+                 const std::vector<std::unique_ptr<astrometry::SphericalCoords>> &fieldProjections, bool logging) {
     // Should be safe to multithread this loop as different threads write
     // only to distinct parts of memory.  Protect the FITS table read though.
 #ifdef _OPENMP
@@ -1330,12 +1330,12 @@ void readObjects(const img::FTable &extensionTable, const vector<unique_ptr<Expo
         string filename;
         extensionTable.readCell(filename, "Filename", iext);
         if (logging && iext % 50 == 0)
-            cerr << "# Reading object catalog " << iext << "/" << extensions.size() << " from " << filename
-                 << " seeking " << extn.keepers.size() << " objects" << endl;
+            std::cerr << "# Reading object catalog " << iext << "/" << extensions.size() << " from " << filename
+                 << " seeking " << extn.keepers.size() << " objects" << std::endl;
         int hduNumber;
         string xKey;
         string yKey;
-        vector<string> xyErrKeys;  // Holds name(s) of posn error keys
+        std::vector<string> xyErrKeys;  // Holds name(s) of posn error keys
         string idKey;
         // For PM catalogs:
         string pmRaKey;
@@ -1354,7 +1354,7 @@ void readObjects(const img::FTable &extensionTable, const vector<unique_ptr<Expo
         extensionTable.readCell(idKey, "idKey", iext);
 
         // Keep track of what rows we need to read from this catalog
-        vector<string> neededColumns;
+        std::vector<string> neededColumns;
         bool useRows = stringstuff::nocaseEqual(idKey, "_ROW");
         if (!useRows) neededColumns.push_back(idKey);
         neededColumns.push_back(xKey);
@@ -1413,7 +1413,7 @@ void readObjects(const img::FTable &extensionTable, const vector<unique_ptr<Expo
 
         const typename S::SubMap *sm = extn.map;
 
-        if (!sm) cerr << "Exposure " << expo.name << " submap is null" << endl;
+        if (!sm) std::cerr << "Exposure " << expo.name << " submap is null" << std::endl;
 
         astrometry::Wcs *startWcs = extn.startWcs.get();
 
@@ -1429,7 +1429,7 @@ void readObjects(const img::FTable &extensionTable, const vector<unique_ptr<Expo
             FITS::FitsTable ft(filename, FITS::ReadOnly, hduNumber);
             ff = ft.extract(0, -1, neededColumns);
         }
-        vector<LONGLONG> id;
+        std::vector<LONGLONG> id;
         if (useRows) {
             id.resize(ff.nrows());
             for (long i = 0; i < id.size(); i++) id[i] = i;
@@ -1446,7 +1446,7 @@ void readObjects(const img::FTable &extensionTable, const vector<unique_ptr<Expo
         double magshift = extn.magshift;
 
         // Get fieldProjection for this catalog
-        unique_ptr<astrometry::SphericalCoords> fieldProjection(fieldProjections[expo.field]->duplicate());
+        std::unique_ptr<astrometry::SphericalCoords> fieldProjection(fieldProjections[expo.field]->duplicate());
 
         if (S::isAstro) {
             errorColumnIsDouble = isDouble(ff, pmCatalog ? pmCovKey : xyErrKeys[0], -1);
@@ -1495,14 +1495,14 @@ void readObjects(const img::FTable &extensionTable, const vector<unique_ptr<Expo
 // Read each Extension's objects' data from it FITS catalog
 // and place into Detection structures.
 template <class S>
-void readObjects_oneExtension(const vector<unique_ptr<Exposure>> &exposures, int iext, const img::FTable &ff,
+void readObjects_oneExtension(const std::vector<std::unique_ptr<Exposure>> &exposures, int iext, const img::FTable &ff,
                               const string &xKey, const string &yKey, const string &idKey,
-                              const string &pmCovKey, const vector<string> &xyErrKeys, const string &magKey,
+                              const string &pmCovKey, const std::vector<string> &xyErrKeys, const string &magKey,
                               const int &magKeyElement, const string &magErrKey,
                               const int &magErrKeyElement,  // TODO: make these dictionary?
                               const string &pmRaKey, const string &pmDecKey, const string &parallaxKey,
-                              const vector<unique_ptr<typename S::Extension>> &extensions,
-                              const vector<unique_ptr<astrometry::SphericalCoords>> &fieldProjections,
+                              const std::vector<std::unique_ptr<typename S::Extension>> &extensions,
+                              const std::vector<std::unique_ptr<astrometry::SphericalCoords>> &fieldProjections,
                               bool logging, bool useRows) {
     // Relevant structures for this extension
     typename S::Extension &extn = *extensions[iext];
@@ -1514,7 +1514,7 @@ void readObjects_oneExtension(const vector<unique_ptr<Exposure>> &exposures, int
 
     const typename S::SubMap *sm = extn.map;
 
-    if (!sm) cerr << "Exposure " << expo.name << " submap is null" << endl;
+    if (!sm) std::cerr << "Exposure " << expo.name << " submap is null" << std::endl;
 
     astrometry::Wcs *startWcs = extn.startWcs.get();
 
@@ -1522,7 +1522,7 @@ void readObjects_oneExtension(const vector<unique_ptr<Exposure>> &exposures, int
         throw std::runtime_error("Failed to find initial Wcs for exposure " + expo.name);
     }
 
-    vector<LONGLONG> id;
+    std::vector<LONGLONG> id;
     if (useRows) {
         id.resize(ff.nrows());
         for (long i = 0; i < id.size(); i++) id[i] = i;
@@ -1585,7 +1585,7 @@ void readObjects_oneExtension(const vector<unique_ptr<Exposure>> &exposures, int
 // relevant Matches.
 template <class S>
 void readColors(const img::FTable &extensionTable,
-                const vector<unique_ptr<typename S::ColorExtension>> &colorExtensions, bool logging) {
+                const std::vector<std::unique_ptr<typename S::ColorExtension>> &colorExtensions, bool logging) {
     for (int iext = 0; iext < colorExtensions.size(); iext++) {
         if (!colorExtensions[iext]) continue;  // Skip unused
         auto &extn = *colorExtensions[iext];
@@ -1593,8 +1593,8 @@ void readColors(const img::FTable &extensionTable,
         string filename;
         extensionTable.readCell(filename, "Filename", iext);
         if (logging)
-            cerr << "# Reading color catalog " << iext << "/" << colorExtensions.size() << " from "
-                 << filename << endl;
+            std::cerr << "# Reading color catalog " << iext << "/" << colorExtensions.size() << " from "
+                 << filename << std::endl;
         int hduNumber;
         extensionTable.readCell(hduNumber, "extension", iext);
         string idKey;
@@ -1617,7 +1617,7 @@ void readColors(const img::FTable &extensionTable,
         img::FTable ff = ft.use();
 
         bool useRows = stringstuff::nocaseEqual(idKey, "_ROW");
-        vector<long> id;
+        std::vector<long> id;
         if (useRows) {
             id.resize(ff.nrows());
             for (long i = 0; i < id.size(); i++) id[i] = i;
@@ -1626,7 +1626,7 @@ void readColors(const img::FTable &extensionTable,
         }
         Assert(id.size() == ff.nrows());
 
-        vector<double> color(id.size(), 0.);
+        std::vector<double> color(id.size(), 0.);
         ff.evaluate(color, colorExpression);
 
         for (long irow = 0; irow < ff.nrows(); irow++) {
@@ -1656,8 +1656,8 @@ void readColors(const img::FTable &extensionTable,
 // Also deletes anything that is already marked as clipped
 template <class S>
 void purgeNoisyDetections(double maxError, typename S::MCat &matches,
-                          const vector<unique_ptr<Exposure>> &exposures,
-                          const vector<unique_ptr<typename S::Extension>> &extensions) {
+                          const std::vector<std::unique_ptr<Exposure>> &exposures,
+                          const std::vector<std::unique_ptr<typename S::Extension>> &extensions) {
     for (auto const &mptr : matches) {
         auto j = mptr->begin();
         int k = 0;
@@ -1702,7 +1702,7 @@ void purgeBadColor(double minColor, double maxColor, typename S::MCat &matches) 
             // all have the same color).
             // Also kills things with NaN / inf colors
             double color = S::getColor(**(*im)->begin());
-            if ((color != astrometry::NODATA && (color < minColor || color > maxColor)) || !isfinite(color)) {
+            if ((color != astrometry::NODATA && (color < minColor || color > maxColor)) || !std::isfinite(color)) {
                 // Remove entire match if it's too small, and kill its Detections too
                 (*im)->clear();
                 im = matches.erase(im);
@@ -1725,12 +1725,12 @@ void reserveMatches(typename S::MCat &matches, double reserveFraction, int rando
 // have fewer than minFitExposure fittable Detections using
 // them, also gives the number of fittable Detections they have.
 template <class S>
-map<string, long> findUnderpopulatedExposures(long minFitExposure, const typename S::MCat &matches,
-                                              const vector<unique_ptr<Exposure>> &exposures,
-                                              const vector<unique_ptr<typename S::Extension>> &extensions,
+std::map<string, long> findUnderpopulatedExposures(long minFitExposure, const typename S::MCat &matches,
+                                              const std::vector<std::unique_ptr<Exposure>> &exposures,
+                                              const std::vector<std::unique_ptr<typename S::Extension>> &extensions,
                                               const typename S::Collection &pmc) {
     // First count up useful Detections in each extension:
-    vector<long> extnCounts(extensions.size(), 0);
+    std::vector<long> extnCounts(extensions.size(), 0);
     for (auto const &mptr : matches)
         if (!mptr->getReserved())
             for (auto const &dptr : *mptr)
@@ -1738,7 +1738,7 @@ map<string, long> findUnderpopulatedExposures(long minFitExposure, const typenam
 
     // Now for each exposure, add up extnCounts of all extensions
     // that depend on a map with name of the exposure.
-    map<string, long> bad;
+    std::map<std::string, long> bad;
     for (int iExpo = 0; iExpo < exposures.size(); iExpo++) {
         if (!exposures[iExpo]) continue;  // Not in use
         string expoName = exposures[iExpo]->name;
@@ -1757,11 +1757,11 @@ map<string, long> findUnderpopulatedExposures(long minFitExposure, const typenam
 // use of it as clipped so they will not be used in fitting
 template <class S>
 void freezeMap(string mapName, typename S::MCat &matches,
-               vector<unique_ptr<typename S::Extension>> &extensions, typename S::Collection &pmc) {
+               std::vector<std::unique_ptr<typename S::Extension>> &extensions, typename S::Collection &pmc) {
     // Nothing to do if map is already fixed or doesn't exist
     if (!pmc.mapExists(mapName) || pmc.getFixed(mapName)) return;
 
-    set<long> badExtensions;  // values of extensions using the map
+    std::set<long> badExtensions;  // values of extensions using the map
     for (int iExtn = 0; iExtn < extensions.size(); iExtn++) {
         if (!extensions[iExtn]) continue;  // Not in use
         if (pmc.dependsOn(extensions[iExtn]->mapName, mapName)) badExtensions.insert(iExtn);
@@ -1793,7 +1793,7 @@ void freezeMap(string mapName, typename S::MCat &matches,
 }
 
 template <class S>
-void matchCensus(const typename S::MCat &matches, ostream &os) {
+void matchCensus(const typename S::MCat &matches, std::ostream &os) {
     long dcount = 0;
     int dof = 0;
     double chi = 0.;
@@ -1802,8 +1802,8 @@ void matchCensus(const typename S::MCat &matches, ostream &os) {
         dcount += mptr->fitSize();
         chi += mptr->chisq(dof, maxdev);
     }
-    cerr << "# Using " << matches.size() << " matches with " << dcount << " total detections." << endl;
-    cerr << "#  chisq " << chi << " / " << dof << " dof maxdev " << maxdev << endl;
+    std::cerr << "# Using " << matches.size() << " matches with " << dcount << " total detections." << std::endl;
+    std::cerr << "#  chisq " << chi << " / " << dof << " dof maxdev " << maxdev << std::endl;
 }
 
 // Map and clip reserved matches
@@ -1821,16 +1821,16 @@ void clipReserved(typename S::Align &ca, double clipThresh, double minimumImprov
         int dof = 0;
         double chisq = ca.chisqDOF(dof, max, true);
         if (reportToCerr)
-            cerr << "Clipping " << mcount << " matches with " << dcount << " detections "
-                 << " chisq " << chisq << " / " << dof << " dof,  maxdev " << max << " sigma" << endl;
+            std::cerr << "Clipping " << mcount << " matches with " << dcount << " detections "
+                 << " chisq " << chisq << " / " << dof << " dof,  maxdev " << max << " sigma" << std::endl;
 
         double thresh = sqrt(chisq / dof) * clipThresh;  // ??? expected chisq instead of dof?
-        if (reportToCerr) cerr << "  new clip threshold: " << thresh << " sigma" << endl;
+        if (reportToCerr) std::cerr << "  new clip threshold: " << thresh << " sigma" << std::endl;
         if (thresh >= max) break;
         if (oldthresh > 0. && (1 - thresh / oldthresh) < minimumImprovement) break;
         oldthresh = thresh;
         nclip = ca.sigmaClip(thresh, true, clipEntireMatch);
-        if (reportToCerr) cerr << "Clipped " << nclip << " matches " << endl;
+        if (reportToCerr) std::cerr << "Clipped " << nclip << " matches " << std::endl;
     } while (nclip > 0);
 }
 
@@ -1843,17 +1843,17 @@ void Photo::saveResults(const MCat &matches, string outCatalog) {
     ;
 
     // Make a vector of match pointers so we can use OpenMP
-    vector<Match *> vmatches;
+    std::vector<Match *> vmatches;
     vmatches.reserve(matches.size());
     for (auto const &m : matches) vmatches.push_back(m.get());
 
     {
         // Create vectors to help type each new column
-        vector<int> vint;
-        vector<long> vlong;
-        vector<bool> vbool;
-        vector<float> vfloat;
-        vector<vector<float>> vvfloat;
+        std::vector<int> vint;
+        std::vector<long> vlong;
+        std::vector<bool> vbool;
+        std::vector<float> vfloat;
+        std::vector<std::vector<float>> vvfloat;
         outTable.addColumn(vint, "matchID");
         outTable.addColumn(vlong, "extension");
         outTable.addColumn(vlong, "object");
@@ -1882,22 +1882,22 @@ void Photo::saveResults(const MCat &matches, string outCatalog) {
 #endif
     for (int iChunk = 0; iChunk <= (vmatches.size() + MATCH_CHUNK - 1) / MATCH_CHUNK; iChunk++) {
         // Create vectors that will be put into output table
-        vector<int> matchID;
-        vector<long> catalogNumber;
-        vector<long> objectNumber;
-        vector<bool> clip;
-        vector<bool> reserve;
-        vector<float> xpix;
-        vector<float> ypix;
-        vector<float> xExposure;
-        vector<float> yExposure;
-        vector<float> color;
+        std::vector<int> matchID;
+        std::vector<long> catalogNumber;
+        std::vector<long> objectNumber;
+        std::vector<bool> clip;
+        std::vector<bool> reserve;
+        std::vector<float> xpix;
+        std::vector<float> ypix;
+        std::vector<float> xExposure;
+        std::vector<float> yExposure;
+        std::vector<float> color;
 
-        vector<float> magOut;
-        vector<float> magRes;
-        vector<float> sigMag;
-        vector<float> chisq;
-        vector<float> chisqExpected;
+        std::vector<float> magOut;
+        std::vector<float> magRes;
+        std::vector<float> sigMag;
+        std::vector<float> chisq;
+        std::vector<float> chisqExpected;
 
         for (int iMatch = iChunk * MATCH_CHUNK;
              iMatch < vmatches.size() && iMatch < (iChunk + 1) * MATCH_CHUNK; iMatch++) {
@@ -1965,7 +1965,7 @@ void Photo::saveResults(const MCat &matches, string outCatalog) {
 /***** Astro version ***/
 // Save fitting results (residuals) to output FITS tables.
 void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, string starCatalog,
-                        vector<astrometry::SphericalCoords *> catalogProjections) {
+                        std::vector<astrometry::SphericalCoords *> catalogProjections) {
     // Open the output bintable for pure position residuals
     string tableName = "WCSOut";
     string pmTableName = "PMOut";
@@ -1974,16 +1974,16 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
     // pmTable and starTable will be created after gathering all data
 
     // Make a vector of match pointers so we can use OpenMP
-    vector<Match *> vmatches;
+    std::vector<Match *> vmatches;
     vmatches.reserve(matches.size());
     for (auto const &m : matches) vmatches.push_back(m.get());
 
     // Make a global of PMDetections to output
-    vector<const PMDetection *> pmdets;
+    std::vector<const PMDetection *> pmdets;
     // And the id's of matches they belong to
-    vector<int> pmDetMatchID;
+    std::vector<int> pmDetMatchID;
     // Make vector of units conversions to I/O units
-    vector<float> units(5);
+    std::vector<float> units(5);
     units[astrometry::X0] = WCS_UNIT / RESIDUAL_UNIT;
     units[astrometry::Y0] = WCS_UNIT / RESIDUAL_UNIT;
     units[astrometry::PAR] = WCS_UNIT / RESIDUAL_UNIT;
@@ -1995,11 +1995,11 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
         img::FTable outTable = ft.use();
         {
             // Create vectors to help type each new column
-            vector<int> vint;
-            vector<long> vlong;
-            vector<bool> vbool;
-            vector<float> vfloat;
-            vector<vector<float>> vvfloat;
+            std::vector<int> vint;
+            std::vector<long> vlong;
+            std::vector<bool> vbool;
+            std::vector<float> vfloat;
+            std::vector<std::vector<float>> vvfloat;
             outTable.addColumn(vint, "matchID");
             outTable.addColumn(vlong, "extension");
             outTable.addColumn(vlong, "object");
@@ -2030,29 +2030,29 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
 #pragma omp parallel for
 #endif
         for (int iChunk = 0; iChunk <= (vmatches.size() + MATCH_CHUNK - 1) / MATCH_CHUNK; iChunk++) {
-            vector<int> matchID;
-            vector<long> catalogNumber;
-            vector<long> objectNumber;
-            vector<bool> clip;
-            vector<bool> reserve;
-            vector<bool> hasPM;  // Was this input a full PM estimate?
-            vector<float> color;
+            std::vector<int> matchID;
+            std::vector<long> catalogNumber;
+            std::vector<long> objectNumber;
+            std::vector<bool> clip;
+            std::vector<bool> reserve;
+            std::vector<bool> hasPM;  // Was this input a full PM estimate?
+            std::vector<float> color;
 
-            vector<float> xresw;
-            vector<float> yresw;
-            vector<float> xpix;
-            vector<float> ypix;
-            vector<float> sigpix;  // Circularized total error in pixels
-            vector<float> xrespix;
-            vector<float> yrespix;
-            vector<float> xworld;
-            vector<float> yworld;
+            std::vector<float> xresw;
+            std::vector<float> yresw;
+            std::vector<float> xpix;
+            std::vector<float> ypix;
+            std::vector<float> sigpix;  // Circularized total error in pixels
+            std::vector<float> xrespix;
+            std::vector<float> yrespix;
+            std::vector<float> xworld;
+            std::vector<float> yworld;
 
             // The full error ellipse
-            vector<vector<float>> covTotalW;
+            std::vector<std::vector<float>> covTotalW;
             // The true chisq for this detection, and the expected value
-            vector<float> chisq;
-            vector<float> chisqExpected;
+            std::vector<float> chisq;
+            std::vector<float> chisqExpected;
 
             for (int iMatch = iChunk * MATCH_CHUNK;
                  iMatch < vmatches.size() && iMatch < (iChunk + 1) * MATCH_CHUNK; iMatch++) {
@@ -2121,9 +2121,9 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
 #ifdef _OPENMP
 #pragma omp critical(io)
 #endif
-                        cerr << "WARNING: Astrometry failure for catalog " << detptr->catalogNumber
+                        std::cerr << "WARNING: Astrometry failure for catalog " << detptr->catalogNumber
                              << " object " << detptr->objectNumber << " world " << detptr->xw << ","
-                             << detptr->yw << " pix " << detptr->xpix << "," << detptr->ypix << endl;
+                             << detptr->yw << " pix " << detptr->xpix << "," << detptr->ypix << std::endl;
                         residP[0] = astrometry::NODATA;
                         residP[1] = astrometry::NODATA;
                     }
@@ -2135,7 +2135,7 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
                     if (detptr->invCov(0, 0) > 0.) {
                         // Save cov in RESIDUAL_UNIT, it's stored in WCS_UNIT
                         cov = detptr->invCov.inverse() * pow(WCS_UNIT / RESIDUAL_UNIT, 2.);
-                        vector<float> vv(3, 0.);
+                        std::vector<float> vv(3, 0.);
                         vv[0] = cov(0, 0);
                         vv[1] = cov(1, 1);
                         vv[2] = cov(0, 1);
@@ -2154,9 +2154,9 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
 #ifdef _OPENMP
 #pragma omp critical(io)
 #endif
-                            cerr << "WARNING: Astrometry failure for catalog " << detptr->catalogNumber
+                            std::cerr << "WARNING: Astrometry failure for catalog " << detptr->catalogNumber
                                  << " object " << detptr->objectNumber << " world " << detptr->xw << ","
-                                 << detptr->yw << " pix " << detptr->xpix << "," << detptr->ypix << endl;
+                                 << detptr->yw << " pix " << detptr->xpix << "," << detptr->ypix << std::endl;
                         }
                         sigpix.push_back(sig);
 
@@ -2166,7 +2166,7 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
                     } else {
                         // Did not have a usable error matrix
                         chisqThis = 0.;
-                        vector<float> vv(3, 0.);
+                        std::vector<float> vv(3, 0.);
                         covTotalW.push_back(vv);
                         sigpix.push_back(0.);
                         chisq.push_back(chisqThis);
@@ -2210,20 +2210,20 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
 
     }  // Close scope of the WCSOut table
 
-    /**/ cerr << "Done WCSOut table" << endl;
+    /**/ std::cerr << "Done WCSOut table" << std::endl;
     {
         // Now write an extension to the output table for quality of PM detections
         // These are quantities we will want for PMDetections
         Assert(pmdets.size() == pmDetMatchID.size());
-        vector<int> pmMatchID(pmdets.size());
-        vector<long> pmCatalogNumber(pmdets.size());
-        vector<long> pmObjectNumber(pmdets.size());
-        vector<bool> pmClip(pmdets.size());
-        vector<bool> pmReserve(pmdets.size());
-        vector<vector<float>> pmMean(pmdets.size());
-        vector<vector<float>> pmInvCov(pmdets.size());
-        vector<float> pmChisq(pmdets.size());
-        vector<float> pmChisqExpected(pmdets.size());
+        std::vector<int> pmMatchID(pmdets.size());
+        std::vector<long> pmCatalogNumber(pmdets.size());
+        std::vector<long> pmObjectNumber(pmdets.size());
+        std::vector<bool> pmClip(pmdets.size());
+        std::vector<bool> pmReserve(pmdets.size());
+        std::vector<std::vector<float>> pmMean(pmdets.size());
+        std::vector<std::vector<float>> pmInvCov(pmdets.size());
+        std::vector<float> pmChisq(pmdets.size());
+        std::vector<float> pmChisqExpected(pmdets.size());
 
         // (Not putting residuals here since PM's will be findable
         //  by matchID in the star table)
@@ -2234,7 +2234,7 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
             pmObjectNumber[i] = pmDetPtr->objectNumber;
             pmClip[i] = pmDetPtr->isClipped;
             pmReserve[i] = pmDetPtr->itsMatch->getReserved();
-            vector<float> vv(5);
+            std::vector<float> vv(5);
             for (int ii = 0; ii < 5; ii++) vv[ii] = pmDetPtr->pmMean[ii];
             // Keep position in WCS_UNITS (degrees), put others into RESIDUAL_UNITS
             vv[astrometry::VX] *= units[astrometry::VX];
@@ -2268,26 +2268,26 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
         }
     }  // End scope of PMDetection table info
 
-    /**/ cerr << "Done with PMOut table" << endl;
+    /**/ std::cerr << "Done with PMOut table" << std::endl;
 
     if (!starCatalog.empty()) {
         // Write a fresh FITS file holding the stellar catalog info for all PM matches
         // Sweep through all matches recording info for the PM ones.
         // These are quantities we will want to put into our output PM catalog
-        vector<int> starMatchID;
-        vector<bool> starReserve;   // Is this star reserved from fit?
-        vector<float> starColor;    // Color for this star
-        vector<int> starPMCount;    // How many PMDetections in it were fit?
-        vector<int> starDetCount;   // How many non-PM Detections in it were fit?
-        vector<int> starClipCount;  // How many detections were clipped?
-        vector<int> starDOF;        // Number of DOF in PM fit
-        vector<float> starChisq;    // Total chisq
-        vector<float> starX;        // The solution
-        vector<float> starY;
-        vector<float> starPMx;
-        vector<float> starPMy;
-        vector<float> starParallax;
-        vector<vector<float>> starInvCov;  // flattened Fisher matrix of PM
+        std::vector<int> starMatchID;
+        std::vector<bool> starReserve;   // Is this star reserved from fit?
+        std::vector<float> starColor;    // Color for this star
+        std::vector<int> starPMCount;    // How many PMDetections in it were fit?
+        std::vector<int> starDetCount;   // How many non-PM Detections in it were fit?
+        std::vector<int> starClipCount;  // How many detections were clipped?
+        std::vector<int> starDOF;        // Number of DOF in PM fit
+        std::vector<float> starChisq;    // Total chisq
+        std::vector<float> starX;        // The solution
+        std::vector<float> starY;
+        std::vector<float> starPMx;
+        std::vector<float> starPMy;
+        std::vector<float> starParallax;
+        std::vector<std::vector<float>> starInvCov;  // flattened Fisher matrix of PM
 
         for (int iMatch = 0; iMatch < vmatches.size(); iMatch++) {
             const Match *m = vmatches[iMatch];
@@ -2354,7 +2354,7 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
                     starX.push_back(ra / WCS_UNIT);
                     starY.push_back(dec / WCS_UNIT);
                 } else {
-                    cerr << "WARNING:  No projection available for matchID " << iMatch << endl;
+                    std::cerr << "WARNING:  No projection available for matchID " << iMatch << std::endl;
                     starX.push_back(pm[astrometry::X0] / WCS_UNIT);
                     starY.push_back(pm[astrometry::Y0] / WCS_UNIT);
                 }
@@ -2365,7 +2365,7 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
             {
                 // And the inverse covariance
                 auto fisher = pmm->getInvCovPM();
-                vector<float> vv(25);
+                std::vector<float> vv(25);
                 int k = 0;
                 for (int i = 0; i < 5; i++)
                     for (int j = 0; j < 5; j++, k++) vv[k] = fisher(i, j) / (units[i] * units[j]);
@@ -2401,35 +2401,35 @@ Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches) {
 
     // TODO: probably don't need vmatches
     // Make a vector of match pointers so we can use OpenMP
-    vector<Match *> vmatches;
+    std::vector<Match *> vmatches;
     vmatches.reserve(matches.size());
     for (auto const &m : matches) vmatches.push_back(m.get());
 
-    vector<int> matchID;
-    vector<long> catalogNumber;
-    vector<long> objectNumber;
-    vector<bool> clip;
-    vector<bool> reserve;
-    vector<bool> hasPM;  // Was this input a full PM estimate?
-    vector<double> color;
+    std::vector<int> matchID;
+    std::vector<long> catalogNumber;
+    std::vector<long> objectNumber;
+    std::vector<bool> clip;
+    std::vector<bool> reserve;
+    std::vector<bool> hasPM;  // Was this input a full PM estimate?
+    std::vector<double> color;
 
-    vector<double> xresw;
-    vector<double> yresw;
-    vector<double> xpix;
-    vector<double> ypix;
-    vector<double> sigpix;  // Circularized total error in pixels
-    vector<double> xrespix;
-    vector<double> yrespix;
-    vector<double> xworld;
-    vector<double> yworld;
+    std::vector<double> xresw;
+    std::vector<double> yresw;
+    std::vector<double> xpix;
+    std::vector<double> ypix;
+    std::vector<double> sigpix;  // Circularized total error in pixels
+    std::vector<double> xrespix;
+    std::vector<double> yrespix;
+    std::vector<double> xworld;
+    std::vector<double> yworld;
 
     // The full error ellipse
-    vector<double> covTotalW_00;
-    vector<double> covTotalW_11;
-    vector<double> covTotalW_01;
+    std::vector<double> covTotalW_00;
+    std::vector<double> covTotalW_11;
+    std::vector<double> covTotalW_01;
     // The true chisq for this detection, and the expected value
-    vector<double> chisq;
-    vector<double> chisqExpected;
+    std::vector<double> chisq;
+    std::vector<double> chisqExpected;
     for (int iMatch = 0; iMatch < vmatches.size(); iMatch++) {
         const Match *m = vmatches[iMatch];
 
@@ -2487,9 +2487,9 @@ Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches) {
     #ifdef _OPENMP
     #pragma omp critical(io)
     #endif
-                cerr << "WARNING: Astrometry failure for catalog " << detptr->catalogNumber
+                std::cerr << "WARNING: Astrometry failure for catalog " << detptr->catalogNumber
                         << " object " << detptr->objectNumber << " world " << detptr->xw << ","
-                        << detptr->yw << " pix " << detptr->xpix << "," << detptr->ypix << endl;
+                        << detptr->yw << " pix " << detptr->xpix << "," << detptr->ypix << std::endl;
                 residP[0] = astrometry::NODATA;
                 residP[1] = astrometry::NODATA;
             }
@@ -2518,9 +2518,9 @@ Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches) {
     #ifdef _OPENMP
     #pragma omp critical(io)
     #endif
-                    cerr << "WARNING: Astrometry failure for catalog " << detptr->catalogNumber
+                    std::cerr << "WARNING: Astrometry failure for catalog " << detptr->catalogNumber
                             << " object " << detptr->objectNumber << " world " << detptr->xw << ","
-                            << detptr->yw << " pix " << detptr->xpix << "," << detptr->ypix << endl;
+                            << detptr->yw << " pix " << detptr->xpix << "," << detptr->ypix << std::endl;
                 }
                 sigpix.push_back(sig);
 
@@ -2568,16 +2568,16 @@ Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches) {
 Astro::PMCatalog Astro::getPMCatalog(const astrometry::MCat &matches) {
 
     // TODO: probably don't need vmatches
-    vector<Match *> vmatches;
+    std::vector<Match *> vmatches;
     vmatches.reserve(matches.size());
 
     // Make a global of PMDetections to output
-    vector<const PMDetection *> pmdets;
+    std::vector<const PMDetection *> pmdets;
     // And the id's of matches they belong to
-    vector<int> pmDetMatchID;
+    std::vector<int> pmDetMatchID;
 
     // Make vector of units conversions to I/O units
-    vector<float> units(5);
+    std::vector<float> units(5);
     units[astrometry::X0] = WCS_UNIT / RESIDUAL_UNIT;
     units[astrometry::Y0] = WCS_UNIT / RESIDUAL_UNIT;
     units[astrometry::PAR] = WCS_UNIT / RESIDUAL_UNIT;
@@ -2601,15 +2601,15 @@ Astro::PMCatalog Astro::getPMCatalog(const astrometry::MCat &matches) {
     // Now write an extension to the output table for quality of PM detections
     // These are quantities we will want for PMDetections
     Assert(pmdets.size() == pmDetMatchID.size());
-    vector<int> pmMatchID(pmdets.size());
-    vector<long> pmCatalogNumber(pmdets.size());
-    vector<long> pmObjectNumber(pmdets.size());
-    vector<bool> pmClip(pmdets.size());
-    vector<bool> pmReserve(pmdets.size());
-    vector<vector<double>> pmMean(pmdets.size());
-    vector<vector<double>> pmInvCov(pmdets.size());
-    vector<double> pmChisq(pmdets.size());
-    vector<double> pmChisqExpected(pmdets.size());
+    std::vector<int> pmMatchID(pmdets.size());
+    std::vector<long> pmCatalogNumber(pmdets.size());
+    std::vector<long> pmObjectNumber(pmdets.size());
+    std::vector<bool> pmClip(pmdets.size());
+    std::vector<bool> pmReserve(pmdets.size());
+    std::vector<std::vector<double>> pmMean(pmdets.size());
+    std::vector<std::vector<double>> pmInvCov(pmdets.size());
+    std::vector<double> pmChisq(pmdets.size());
+    std::vector<double> pmChisqExpected(pmdets.size());
     pmMean.reserve(pmdets.size());
     pmInvCov.reserve(pmdets.size());
 
@@ -2622,7 +2622,7 @@ Astro::PMCatalog Astro::getPMCatalog(const astrometry::MCat &matches) {
         pmObjectNumber[i] = pmDetPtr->objectNumber;
         pmClip[i] = pmDetPtr->isClipped;
         pmReserve[i] = pmDetPtr->itsMatch->getReserved();
-        vector<double> vv(5);
+        std::vector<double> vv(5);
         for (int ii = 0; ii < 5; ii++) vv[ii] = pmDetPtr->pmMean[ii];
         // Keep position in WCS_UNITS (degrees), put others into RESIDUAL_UNITS
         vv[astrometry::VX] *= units[i];
@@ -2653,27 +2653,27 @@ Astro::PMCatalog Astro::getPMCatalog(const astrometry::MCat &matches) {
 }
 
 Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
-                                         vector<astrometry::SphericalCoords *> catalogProjections) {
+                                         std::vector<astrometry::SphericalCoords *> catalogProjections) {
     // Make a map holding the stellar catalog info for all PM matches
     // Sweep through all matches recording info for the PM ones.
     // These are quantities we will want to put into our output PM catalog
-    vector<int> starMatchID;
-    vector<bool> starReserve;   // Is this star reserved from fit?
-    vector<double> starColor;    // Color for this star
-    vector<int> starPMCount;    // How many PMDetections in it were fit?
-    vector<int> starDetCount;   // How many non-PM Detections in it were fit?
-    vector<int> starClipCount;  // How many detections were clipped?
-    vector<int> starDOF;        // Number of DOF in PM fit
-    vector<double> starChisq;    // Total chisq
-    vector<double> starX;        // The solution
-    vector<double> starY;
-    vector<double> starPMx;
-    vector<double> starPMy;
-    vector<double> starParallax;
-    vector<vector<double>> starInvCov;  // flattened Fisher matrix of PM
+    std::vector<int> starMatchID;
+    std::vector<bool> starReserve;   // Is this star reserved from fit?
+    std::vector<double> starColor;    // Color for this star
+    std::vector<int> starPMCount;    // How many PMDetections in it were fit?
+    std::vector<int> starDetCount;   // How many non-PM Detections in it were fit?
+    std::vector<int> starClipCount;  // How many detections were clipped?
+    std::vector<int> starDOF;        // Number of DOF in PM fit
+    std::vector<double> starChisq;    // Total chisq
+    std::vector<double> starX;        // The solution
+    std::vector<double> starY;
+    std::vector<double> starPMx;
+    std::vector<double> starPMy;
+    std::vector<double> starParallax;
+    std::vector<std::vector<double>> starInvCov;  // flattened Fisher matrix of PM
 
     // Make vector of units conversions to I/O units
-    vector<float> units(5);
+    std::vector<float> units(5);
     units[astrometry::X0] = WCS_UNIT / RESIDUAL_UNIT;
     units[astrometry::Y0] = WCS_UNIT / RESIDUAL_UNIT;
     units[astrometry::PAR] = WCS_UNIT / RESIDUAL_UNIT;
@@ -2682,7 +2682,7 @@ Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
 
     // TODO: don't need vmatches probably
     // Make a vector of match pointers so we can use OpenMP
-    vector<Match *> vmatches;
+    std::vector<Match *> vmatches;
     vmatches.reserve(matches.size());
     for (auto const &m : matches) vmatches.push_back(m.get());
 
@@ -2756,7 +2756,7 @@ Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
                 starX.push_back(ra / WCS_UNIT);
                 starY.push_back(dec / WCS_UNIT);
             } else {
-                cerr << "WARNING:  No projection available for matchID " << iMatch << endl;
+                std::cerr << "WARNING:  No projection available for matchID " << iMatch << std::endl;
                 starX.push_back(pm[astrometry::X0] / WCS_UNIT);
                 starY.push_back(pm[astrometry::Y0] / WCS_UNIT);
             }
@@ -2787,7 +2787,7 @@ Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
         if (pmm) {
             // And the inverse covariance
             auto fisher = pmm->getInvCovPM();
-            vector<double> vv(25);
+            std::vector<double> vv(25);
             int k = 0;
             for (int i = 0; i < 5; i++)
                 for (int j = 0; j < 5; j++, k++) vv[k] = fisher(i, j) / (units[i] * units[j]);
@@ -2796,7 +2796,7 @@ Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
         else {
             auto centroidCovariance = m->getCentroidCov();
             auto fisher = centroidCovariance.inverse();
-            vector<double> vv(4);
+            std::vector<double> vv(4);
             int k = 0;
             for (int i = 0; i < 2; i++)
                 for (int j = 0; j < 2; j++, k++) vv[k] = fisher(i, j) / (units[i] * units[j]);
@@ -2822,14 +2822,14 @@ Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
     return starCat;
 }
 
-void Photo::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposure>> &exposures,
-                             const vector<unique_ptr<Photo::Extension>> &extensions, ostream &os) {
+void Photo::reportStatistics(const MCat &matches, const std::vector<std::unique_ptr<Exposure>> &exposures,
+                             const std::vector<std::unique_ptr<Photo::Extension>> &extensions, std::ostream &os) {
     // Create Accum instances for fitted and reserved Detections on every
     // exposure, plus total accumulator for all reference
     // and all non-reference objects.
     typedef Accum<Photo> Acc;
-    vector<Acc> vaccFit(exposures.size());
-    vector<Acc> vaccReserve(exposures.size());
+    std::vector<Acc> vaccFit(exposures.size());
+    std::vector<Acc> vaccReserve(exposures.size());
     Acc refAccFit;
     Acc refAccReserve;
     Acc accFit;
@@ -2872,39 +2872,39 @@ void Photo::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposu
     }      // end match loop
 
     // Sort the exposures by name lexical order
-    vector<int> ii;
+    std::vector<int> ii;
     for (int i = 0; i < exposures.size(); i++)
         if (exposures[i]) ii.push_back(i);
     std::sort(ii.begin(), ii.end(), NameSorter<Exposure>(exposures));
 
     // Print summary statistics for each exposure
-    os << "#   Exposure           | " << Accum<Photo>::header() << endl;
+    os << "#   Exposure           | " << Accum<Photo>::header() << std::endl;
     for (int i = 0; i < ii.size(); i++) {
         int iexp = ii[i];
         if (vaccFit[iexp].ntot == 0 && vaccReserve[iexp].ntot == 0)
             // Do not report statistics if there are no detections
             continue;
-        os << setw(3) << iexp << " " << setw(10) << exposures[iexp]->name << " Fit     | "
-           << vaccFit[iexp].summary() << endl;
+        os << std::setw(3) << iexp << " " << std::setw(10) << exposures[iexp]->name << " Fit     | "
+           << vaccFit[iexp].summary() << std::endl;
         if (vaccReserve[iexp].n > 0)
-            os << setw(3) << iexp << " " << setw(10) << exposures[iexp]->name << " Reserve | "
-               << vaccReserve[iexp].summary() << endl;
+            os << std::setw(3) << iexp << " " << std::setw(10) << exposures[iexp]->name << " Reserve | "
+               << vaccReserve[iexp].summary() << std::endl;
     }  // exposure summary loop
 
     // Output summary data for reference catalog and detections
-    cout << "# ------------------------------------------------" << endl;
-    os << "Detection fit          | " << accFit.summary() << endl;
-    if (accReserve.n > 0) os << "Detection reserve      | " << accReserve.summary() << endl;
+    std::cout << "# ------------------------------------------------" << std::endl;
+    os << "Detection fit          | " << accFit.summary() << std::endl;
+    if (accReserve.n > 0) os << "Detection reserve      | " << accReserve.summary() << std::endl;
 }
 
-void Astro::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposure>> &exposures,
-                             const vector<unique_ptr<typename Astro::Extension>> &extensions, ostream &os) {
+void Astro::reportStatistics(const MCat &matches, const std::vector<std::unique_ptr<Exposure>> &exposures,
+                             const std::vector<std::unique_ptr<typename Astro::Extension>> &extensions, std::ostream &os) {
     // Create Accum instances for fitted and reserved Detections on every
     // exposure, plus total accumulator for all reference
     // and all non-reference objects.
     typedef Accum<Astro> Acc;
-    vector<Acc> vaccFit(exposures.size());
-    vector<Acc> vaccReserve(exposures.size());
+    std::vector<Acc> vaccFit(exposures.size());
+    std::vector<Acc> vaccReserve(exposures.size());
     Acc refAccFit;
     Acc refAccReserve;
     Acc accFit;
@@ -2946,34 +2946,34 @@ void Astro::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposu
     }      // end match loop
 
     // Sort the exposures by name lexical order
-    vector<int> ii;
+    std::vector<int> ii;
     for (int i = 0; i < exposures.size(); i++)
         if (exposures[i]) ii.push_back(i);
     std::sort(ii.begin(), ii.end(), NameSorter<Exposure>(exposures));
 
     // Print summary statistics for each exposure
-    os << "#   Exposure           | " << Accum<Astro>::header() << endl;
+    os << "#   Exposure           | " << Accum<Astro>::header() << std::endl;
     for (int i = 0; i < ii.size(); i++) {
         int iexp = ii[i];
         if (vaccFit[iexp].ntot == 0 && vaccReserve[iexp].ntot == 0)
             // Do not report statistics if there are no detections
             continue;
-        os << setw(3) << iexp << " " << setw(10) << exposures[iexp]->name << " Fit     | "
-           << vaccFit[iexp].summary() << endl;
+        os << std::setw(3) << iexp << " " << std::setw(10) << exposures[iexp]->name << " Fit     | "
+           << vaccFit[iexp].summary() << std::endl;
         if (vaccReserve[iexp].n > 0)
-            os << setw(3) << iexp << " " << setw(10) << exposures[iexp]->name << " Reserve | "
-               << vaccReserve[iexp].summary() << endl;
+            os << std::setw(3) << iexp << " " << std::setw(10) << exposures[iexp]->name << " Reserve | "
+               << vaccReserve[iexp].summary() << std::endl;
     }  // exposure summary loop
 
     // Output summary data for reference catalog and detections
 
-    cout << "# ------------------------------------------------" << endl;
+    std::cout << "# ------------------------------------------------" << std::endl;
 
-    os << "Reference fit          | " << refAccFit.summary() << endl;
-    if (refAccReserve.n > 0) os << "Reference reserve      | " << refAccReserve.summary() << endl;
+    os << "Reference fit          | " << refAccFit.summary() << std::endl;
+    if (refAccReserve.n > 0) os << "Reference reserve      | " << refAccReserve.summary() << std::endl;
 
-    os << "Detection fit          | " << accFit.summary() << endl;
-    if (accReserve.n > 0) os << "Detection reserve      | " << accReserve.summary() << endl;
+    os << "Detection fit          | " << accFit.summary() << std::endl;
+    if (accReserve.n > 0) os << "Detection reserve      | " << accReserve.summary() << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -2982,54 +2982,54 @@ void Astro::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposu
 //////////////////////////////////////////////////////////////////
 
 #define INSTANTIATE(AP)                                                                                    \
-    template vector<unique_ptr<AP::Extension>> readExtensions<AP>(                                         \
-            const img::FTable &extensionTable, const vector<unique_ptr<Instrument>> &instruments,          \
-            const vector<unique_ptr<Exposure>> &exposures, const vector<int> &exposureColorPriorities,     \
-            vector<unique_ptr<AP::ColorExtension>> &colorExtensions, astrometry::YAMLCollector &inputYAML, \
+    template std::vector<std::unique_ptr<AP::Extension>> readExtensions<AP>(                                         \
+            const img::FTable &extensionTable, const std::vector<std::unique_ptr<Instrument>> &instruments,          \
+            const std::vector<std::unique_ptr<Exposure>> &exposures, const std::vector<int> &exposureColorPriorities,     \
+            std::vector<std::unique_ptr<AP::ColorExtension>> &colorExtensions, astrometry::YAMLCollector &inputYAML, \
             bool logging);                                                                                 \
-    template int findCanonical<AP>(Instrument & instr, int iInst, vector<unique_ptr<Exposure>> &exposures, \
-                                   vector<unique_ptr<AP::Extension>> &extensions, AP::Collection &pmc);    \
+    template int findCanonical<AP>(Instrument & instr, int iInst, std::vector<std::unique_ptr<Exposure>> &exposures, \
+                                   std::vector<std::unique_ptr<AP::Extension>> &extensions, AP::Collection &pmc);    \
     template void fixMapComponents<AP>(AP::Collection &, const list<string> &,                             \
-                                       const vector<unique_ptr<Instrument>> &);                            \
-    template void createMapCollection<AP>(const vector<unique_ptr<Instrument>> &instruments,               \
-                                          const vector<unique_ptr<Exposure>> &exposures,                   \
-                                          const vector<unique_ptr<AP::Extension>> &extensions,             \
+                                       const std::vector<std::unique_ptr<Instrument>> &);                            \
+    template void createMapCollection<AP>(const std::vector<std::unique_ptr<Instrument>> &instruments,               \
+                                          const std::vector<std::unique_ptr<Exposure>> &exposures,                   \
+                                          const std::vector<std::unique_ptr<AP::Extension>> &extensions,             \
                                           astrometry::YAMLCollector &inputYAML, AP::Collection &pmc);      \
-    template void whoNeedsColor<AP>(const vector<unique_ptr<AP::Extension>> &extensions);                  \
+    template void whoNeedsColor<AP>(const std::vector<std::unique_ptr<AP::Extension>> &extensions);                  \
     template void readObjects<AP>(                                                                         \
-            const img::FTable &extensionTable, const vector<unique_ptr<Exposure>> &exposures,              \
-            const vector<unique_ptr<AP::Extension>> &extensions,                                           \
-            const vector<unique_ptr<astrometry::SphericalCoords>> &fieldProjections, bool logging);        \
+            const img::FTable &extensionTable, const std::vector<std::unique_ptr<Exposure>> &exposures,              \
+            const std::vector<std::unique_ptr<AP::Extension>> &extensions,                                           \
+            const std::vector<std::unique_ptr<astrometry::SphericalCoords>> &fieldProjections, bool logging);        \
     template void readObjects_oneExtension<AP>(                                                            \
-            const vector<unique_ptr<Exposure>> &exposures, int iext, const img::FTable &ff,                \
+            const std::vector<std::unique_ptr<Exposure>> &exposures, int iext, const img::FTable &ff,                \
             const string &xKey, const string &yKey, const string &idKey, const string &pmCovKey,           \
-            const vector<string> &xyErrKeys, const string &magKey, const int &magKeyElement,               \
+            const std::vector<string> &xyErrKeys, const string &magKey, const int &magKeyElement,               \
             const string &magErrKey, const int &magErrKeyElement, const string &pmRaKey,                   \
             const string &pmDecKey, const string &parallaxKey,                                             \
-            const vector<unique_ptr<typename AP::Extension>> &extensions,                                  \
-            const vector<unique_ptr<astrometry::SphericalCoords>> &fieldProjections, bool logging,         \
+            const std::vector<std::unique_ptr<typename AP::Extension>> &extensions,                                  \
+            const std::vector<std::unique_ptr<astrometry::SphericalCoords>> &fieldProjections, bool logging,         \
             bool useRows);                                                                                 \
     template void readMatches<AP>(const img::FTable &table, typename AP::MCat &matches,                    \
-                                  const vector<unique_ptr<AP::Extension>> &extensions,                     \
-                                  const vector<unique_ptr<AP::ColorExtension>> &colorExtensions,           \
+                                  const std::vector<std::unique_ptr<AP::Extension>> &extensions,                     \
+                                  const std::vector<std::unique_ptr<AP::ColorExtension>> &colorExtensions,           \
                                   const ExtensionObjectSet &skipSet, int minMatches, bool usePM);          \
     template void readColors<AP>(const img::FTable &extensionTable,                                        \
-                                 const vector<unique_ptr<AP::ColorExtension>> &colorExtensions,            \
+                                 const std::vector<std::unique_ptr<AP::ColorExtension>> &colorExtensions,            \
                                  bool logging);                                                            \
     template void purgeNoisyDetections<AP>(double maxError, AP::MCat &matches,                             \
-                                           const vector<unique_ptr<Exposure>> &exposures,                  \
-                                           const vector<unique_ptr<AP::Extension>> &extensions);           \
+                                           const std::vector<std::unique_ptr<Exposure>> &exposures,                  \
+                                           const std::vector<std::unique_ptr<AP::Extension>> &extensions);           \
     template void purgeSparseMatches<AP>(int minMatches, AP::MCat &matches);                               \
     template void purgeBadColor<AP>(double minColor, double maxColor, AP::MCat &matches);                  \
                                                                                                            \
     template void reserveMatches<AP>(AP::MCat & matches, double reserveFraction, int randomNumberSeed);    \
                                                                                                            \
-    template map<string, long> findUnderpopulatedExposures<AP>(                                            \
-            long minFitExposure, const AP::MCat &matches, const vector<unique_ptr<Exposure>> &exposures,   \
-            const vector<unique_ptr<AP::Extension>> &extensions, const AP::Collection &pmc);               \
+    template std::map<string, long> findUnderpopulatedExposures<AP>(                                            \
+            long minFitExposure, const AP::MCat &matches, const std::vector<std::unique_ptr<Exposure>> &exposures,   \
+            const std::vector<std::unique_ptr<AP::Extension>> &extensions, const AP::Collection &pmc);               \
     template void freezeMap<AP>(string mapName, AP::MCat & matches,                                        \
-                                vector<unique_ptr<AP::Extension>> & extensions, AP::Collection & pmc);     \
-    template void matchCensus<AP>(const AP::MCat &matches, ostream &os);                                   \
+                                std::vector<std::unique_ptr<AP::Extension>> & extensions, AP::Collection & pmc);     \
+    template void matchCensus<AP>(const AP::MCat &matches, std::ostream &os);                                   \
     template void clipReserved<AP>(AP::Align & ca, double clipThresh, double minimumImprovement,           \
                                    bool clipEntireMatch, bool reportToCerr);
 

@@ -6,7 +6,7 @@
 #include <sstream>
 #include <map>
 
-#include "Std.h"
+#include "Utils.h"
 #include "Astrometry.h"
 #include "FitsTable.h"
 #include "StringStuff.h"
@@ -21,7 +21,6 @@
 #include "Units.h"  // Specifies angular units used
 #include "FitSubroutines.h"
 
-using namespace std;
 using namespace stringstuff;
 using namespace photometry;
 using astrometry::WCS_UNIT;

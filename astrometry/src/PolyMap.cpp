@@ -211,7 +211,7 @@ LinearMap::makeInv() {
 
 void
 LinearMap::write(YAML::Emitter& os) const {
-  vector<double> vv(DIM);
+  std::vector<double> vv(DIM);
   for (int i=0; i<vv.size(); i++) vv[i] = v[i];
   os << YAML::BeginMap
      << YAML::Key << "Type" << YAML::Value << type()
@@ -228,8 +228,8 @@ LinearMap::create(const YAML::Node& node,
     throw AstrometryError("LinearMap has missing <Type> fields at YAML node " + name);
 
   if (node["Coefficients"]) {
-    vector<string> vvStr = node["Coefficients"].as<vector<string> >();
-    vector<double> vv(vvStr.size());
+    std::vector<string> vvStr = node["Coefficients"].as<std::vector<string> >();
+    std::vector<double> vv(vvStr.size());
     transform(vvStr.begin(), vvStr.end(), vv.begin(), [](const string& val)
     {
     return std::stod(val);

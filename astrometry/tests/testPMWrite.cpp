@@ -5,7 +5,6 @@
 #include <sstream>
 
 using namespace astrometry;
-using namespace std;
 
 int
 main(int argc,

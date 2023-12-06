@@ -1,3 +1,4 @@
+#include <fstream>
 #include "Lookup1d.h"
 #include "StringStuff.h"
 
@@ -66,7 +67,7 @@ Lookup1d::Lookup1d(const YAML::Node& node) {
   }
   argStart = node["ArgStart"].as<double>();
   argStep = node["ArgStep"].as<double>();
-  v = node["Values"].as<vector<double> >();
+  v = node["Values"].as<std::vector<double> >();
   // Calculate and keep the slopes:
   dvda.resize(v.size());
   for (int i=0; i<dvda.size()-1; i++)
@@ -92,7 +93,7 @@ Lookup1d::ingestFile(const string& filename, const string& cachename) {
       throw LookupError("Could not open Lookup1d file " + filename);
 
     // Read file into YAML
-    ifstream ifs(filepath.c_str());
+    std::ifstream ifs(filepath.c_str());
     YAML::Node root = YAML::Load(ifs);
     if (!root.IsMap())
       throw LookupError("Lookup1d file " + filepath + " is not a YAML map");

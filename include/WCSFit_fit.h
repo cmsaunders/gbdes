@@ -4,7 +4,7 @@
 #include <map>
 #include <algorithm>
 
-#include "Std.h"
+#include "Utils.h"
 #include "Astrometry.h"
 #include "FitsTable.h"
 #include "StringStuff.h"
@@ -22,7 +22,6 @@
 #include <omp.h>
 #endif
 
-using namespace std;
 using namespace astrometry;
 using namespace stringstuff;
 using img::FTable;

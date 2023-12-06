@@ -3,7 +3,7 @@
 #ifndef Bounds_H
 #define Bounds_H
 
-#include "Std.h"
+#include "Utils.h"
 #include <vector>
 //---------------------------------------------------------------------------
 
@@ -54,11 +54,11 @@ public:
     return (x!=rhs.x || y!=rhs.y);
   }
 
-  void write(ostream& fout) const {
+  void write(std::ostream& fout) const {
     fout << "(" << x << "," << y << ")";
   }
 
-  void read(istream& fin) {
+  void read(std::istream& fin) {
     char ch;
     fin >> ch >> x >> ch >> y >> ch;
   }
@@ -66,12 +66,12 @@ public:
 }; // Position
 
 template <class T>
-inline ostream& operator<<(ostream& os, const Position<T> p) {
+inline std::ostream& operator<<(std::ostream& os, const Position<T> p) {
   p.write(os); return os;
 }
 
 template <class T>
-inline istream& operator>>(istream& is, Position<T> &p) {
+inline std::istream& operator>>(std::istream& is, Position<T> &p) {
   p.read(is);  return is;
 }
 
@@ -135,13 +135,13 @@ public:
   T area() const
   {return defined ? (xmax-xmin)*(ymax-ymin) : 0.;}
   typename std::vector<Bounds<T> > divide(uint nx, uint ny) const;
-  void write(ostream& fout) const
+  void write(std::ostream& fout) const
   {if (defined) 
     fout << xmin << ' ' << xmax << ' ' << ymin << ' ' << ymax << ' ';
   else
     fout << "Undefined ";
   }
-  void read(istream& fin)
+  void read(std::istream& fin)
   {fin >> xmin >> xmax >> ymin >> ymax; defined = xmin<=xmax && ymin<=ymax; }
 
 private:
@@ -151,11 +151,11 @@ private:
 };
 
 template <class T>
-inline ostream& operator<<(ostream& fout, const Bounds<T>& b)
+inline std::ostream& operator<<(std::ostream& fout, const Bounds<T>& b)
 { b.write(fout); return fout;}
 
 template <class T>
-inline istream& operator>>(istream& fin, Bounds<T>& b)
+inline std::istream& operator>>(std::istream& fin, Bounds<T>& b)
 { b.read(fin); return fin;}
 
 ///////////////////////////////////////////////////////////////////////

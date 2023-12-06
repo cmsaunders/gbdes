@@ -7,9 +7,9 @@
 #include <cctype>
 #include <ios>
 #include <limits>
+#include <iomanip>
 
 using namespace img;
-using namespace std;
 
 // Case-raising & blank-stripping function for keywords.
 string img::KeyFormat(const string input) {
@@ -53,7 +53,7 @@ namespace img {
   template<>
   bool 
   HdrRecord<bool>::setValueString(const string _v) {
-      istringstream iss(_v.c_str());
+      std::istringstream iss(_v.c_str());
       string s;
       string leftover;
       // Should be only one word, T or F:
@@ -75,9 +75,9 @@ namespace img {
   template<>
   string 
   HdrRecord<double>::getValueString() const {
-    ostringstream oss;
-    oss << right << setw(20) << uppercase 
-	<< showpoint << setprecision(12) << val;
+      std::ostringstream oss;
+    oss << std::right << std::setw(20) << std::uppercase
+	<< std::showpoint << std::setprecision(12) << val;
     // Above puts lots of trailing zeroes... get rid of them:
     string work=oss.str();
     size_t eSpot = work.find('E');
@@ -195,17 +195,17 @@ namespace img {
 				   std::numeric_limits<double>::quiet_NaN(),
 				   comment);
     }
-    /**/cerr << "Got ASCII header with bad value <" << vstring << "> keyword " << keyword << endl;
+    /**/std::cerr << "Got ASCII header with bad value <" << vstring << "> keyword " << keyword << std::endl;
     return 0;	// Formatting error
   }
 
-  istream& 
-  operator>>(istream& is, Header& h) {
+  std::istream&
+  operator>>(std::istream& is, Header& h) {
     string buffer;
     while (stringstuff::getlineNoComment(is, buffer)) {
       HdrRecordBase* hrb = ReadASCIIHeader(buffer);
       if (!hrb) {
-	is.setstate(ios::failbit);  // ??? do we want to throw here?
+	is.setstate(std::ios::failbit);  // ??? do we want to throw here?
 	continue;
       }
       if (hrb->getKeyword()=="END") {
@@ -225,12 +225,12 @@ namespace img {
     return is;
   }
 
-  ostream&
-  operator<<(ostream& os,
+  std::ostream&
+  operator<<(std::ostream& os,
 	     const img::Header& h) {
     for (h.rewind(); !h.atEnd(); h.incr())
-      os << h.current()->writeCard() << endl;
-    os << "END     " << endl;
+      os << h.current()->writeCard() << std::endl;
+    os << "END     " << std::endl;
     return os;
   }
 

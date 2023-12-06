@@ -3,10 +3,11 @@
 #include "PhotoMatch.h"
 #include <map>
 #include <StringStuff.h>
+#include <iomanip>
 
 using namespace photometry;
 
-PhotoPrior::PhotoPrior(list<PhotoPriorReferencePoint> points_, double sigma_, string name_, double zeropoint,
+PhotoPrior::PhotoPrior(std::list<PhotoPriorReferencePoint> points_, double sigma_, string name_, double zeropoint,
                        double airmassCoefficient, double colorCoefficient, double apcorrCoefficient,
                        bool freeZeropoint, bool freeAirmass, bool freeColor, bool freeApcorr)
         : sigma(sigma_),
@@ -192,8 +193,8 @@ bool PhotoPrior::sigmaClip(double sigThresh) {
     for (auto i = points.begin(); i != points.end(); ++i) {
         if (i == worst || i->isClipped) continue;
         if (i->exposureName == worst->exposureName) {
-            /**/ cerr << "Clipping prior at " << worst->exposureName << " maxDev " << maxDev << endl;
-            /**/ cerr << " m a b c " << m << " " << a << " " << b << " " << c << endl;
+            /**/ std::cerr << "Clipping prior at " << worst->exposureName << " maxDev " << maxDev << std::endl;
+            /**/ std::cerr << " m a b c " << m << " " << a << " " << b << " " << c << std::endl;
             i->clip();
         }
     }
@@ -205,14 +206,14 @@ void PhotoPrior::clipAll() {
     isPrepared = false;
 }
 
-void PhotoPrior::reportHeader(ostream &os) {
+void PhotoPrior::reportHeader(std::ostream &os) {
     os << "Name        chisq  / dof  sigma    zpt    airmass  color  apcorr \n"
           "* Exposure   Device   Residual   magIn  airmass   color  apcorr   \n"
           "----------------------------------------------------------"
-       << endl;
+       << std::endl;
 }
 
-void PhotoPrior::report(ostream &os) const {
+void PhotoPrior::report(std::ostream &os) const {
     stringstuff::StreamSaver ss(os);
 
     double chi = 0.;
@@ -224,19 +225,19 @@ void PhotoPrior::report(ostream &os) const {
     } else {
         chi = chisq(dof);
     }
-    os << setw(12) << left << getName() << " " << fixed << right << noshowpos << setprecision(1) << setw(6)
-       << chi << " / " << setw(3) << dof << " " << setprecision(3) << setw(5) << getSigma() << " " << showpos
-       << setprecision(4) << setw(8) << getZeropoint() << " " << (zeropointIsFree() ? " " : "*") << " "
-       << setprecision(3) << setw(6) << getAirmass() << " " << (airmassIsFree() ? " " : "*") << " "
-       << setprecision(3) << setw(6) << getColor() << " " << (colorIsFree() ? " " : "*") << " "
-       << setprecision(3) << setw(6) << getApcorr() << " " << (apcorrIsFree() ? " " : "*") << endl;
+    os << std::setw(12) << std::left << getName() << " " << std::fixed << std::right << std::noshowpos << std::setprecision(1) << std::setw(6)
+       << chi << " / " << std::setw(3) << dof << " " << std::setprecision(3) << std::setw(5) << getSigma() << " " << std::showpos
+       << std::setprecision(4) << std::setw(8) << getZeropoint() << " " << (zeropointIsFree() ? " " : "*") << " "
+       << std::setprecision(3) << std::setw(6) << getAirmass() << " " << (airmassIsFree() ? " " : "*") << " "
+       << std::setprecision(3) << std::setw(6) << getColor() << " " << (colorIsFree() ? " " : "*") << " "
+       << std::setprecision(3) << std::setw(6) << getApcorr() << " " << (apcorrIsFree() ? " " : "*") << std::endl;
 
     for (auto &i : points) {
         double resid = i.magOut - (m + a * (i.airmass - 1.) + b * i.args.color + c * i.apcorr);
-        os << (i.isClipped ? "- " : "+ ") << setw(12) << left << i.exposureName << " " << setw(8)
-           << i.deviceName << " " << right << showpos << setprecision(4) << setw(7) << resid << " "
-           << noshowpos << setprecision(3) << setw(7) << i.magIn << " " << setprecision(4) << setw(6)
-           << i.airmass << " " << showpos << setprecision(3) << setw(6) << i.args.color << " " << showpos
-           << setprecision(4) << setw(7) << i.apcorr << endl;
+        os << (i.isClipped ? "- " : "+ ") << std::setw(12) << std::left << i.exposureName << " " << std::setw(8)
+           << i.deviceName << " " << std::right << std::showpos << std::setprecision(4) << std::setw(7) << resid << " "
+           << std::noshowpos << std::setprecision(3) << std::setw(7) << i.magIn << " " << std::setprecision(4) << std::setw(6)
+           << i.airmass << " " << std::showpos << std::setprecision(3) << std::setw(6) << i.args.color << " " << std::showpos
+           << std::setprecision(4) << std::setw(7) << i.apcorr << std::endl;
     }
 }

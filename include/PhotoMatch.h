@@ -7,9 +7,9 @@
 
 #include <list>
 #include <set>
-using std::list;
+#include <memory>
 #include <string>
-#include "Std.h"
+#include "Utils.h"
 #include "LinearAlgebra.h"
 #include "Bounds.h"
 #include "PhotoMapCollection.h"
@@ -66,7 +66,7 @@ public:
   ***/
 class Match {
 private:
-    list<unique_ptr<Detection>> elist;
+    std::list<std::unique_ptr<Detection>> elist;
     bool isReserved;  // Do not contribute to re-fitting if true
 
     /* State maintenance */
@@ -97,12 +97,12 @@ private:
     // Other state-changing calls are public.
 
 public:
-    explicit Match(unique_ptr<Detection> e);
+    explicit Match(std::unique_ptr<Detection> e);
     // Add and remove automatically update itsMatch of the Detection
-    void add(unique_ptr<Detection> e);
+    void add(std::unique_ptr<Detection> e);
     void remove(const Detection &e);
     // Remove a Detection from the match given an iterator to it.
-    list<unique_ptr<Detection>>::iterator erase(list<unique_ptr<Detection>>::iterator i);
+    std::list<std::unique_ptr<Detection>>::iterator erase(std::list<std::unique_ptr<Detection>>::iterator i);
     // Delete all members of match.
     void clear();
 
@@ -164,8 +164,8 @@ public:
     // 2 arguments are updated with info from this match.
     double chisq(int &dofAccum, double &maxDeviateSq) const;
 
-    typedef list<unique_ptr<Detection>>::iterator iterator;
-    typedef list<unique_ptr<Detection>>::const_iterator const_iterator;
+    typedef std::list<std::unique_ptr<Detection>>::iterator iterator;
+    typedef std::list<std::unique_ptr<Detection>>::const_iterator const_iterator;
     iterator begin() { return elist.begin(); }
     iterator end() { return elist.end(); }
     const_iterator begin() const { return elist.begin(); }
@@ -178,8 +178,8 @@ public:
 class PhotoPriorReferencePoint {
 public:
     PhotoPriorReferencePoint() : airmass(1.), map(nullptr), isClipped(false) {}
-    string exposureName;
-    string deviceName;
+    std::string exposureName;
+    std::string deviceName;
     double magIn;           // Magnitude assigned to 1 count per second.
     mutable double magOut;  // Mag after mapping.
     PhotoArguments args;
@@ -195,7 +195,7 @@ public:
 
 class PhotoPrior {
 public:
-    PhotoPrior(list<PhotoPriorReferencePoint> points_, double sigma_, string name_ = "",
+    PhotoPrior(std::list<PhotoPriorReferencePoint> points_, double sigma_, std::string name_ = "",
                double zeropoint = 0., double airmassCoefficient = 0., double colorCoefficient = 0.,
                double apcorrCoefficient = 0., bool freeZeropoint = false, bool freeAirmass = false,
                bool freeColor = false, bool freeApcorr = false);
@@ -212,7 +212,7 @@ public:
         return dof;
     }
 
-    string getName() const { return name; }
+    std::string getName() const { return name; }
     double getSigma() const { return sigma; }
     double getZeropoint() const { return m; }
     double getAirmass() const { return a; }
@@ -240,13 +240,13 @@ public:
     double chisq(int &dofAccum) const;
 
     // For a printed report to the stated stream:
-    static void reportHeader(ostream &os);
-    void report(ostream &os) const;
+    static void reportHeader(std::ostream &os);
+    void report(std::ostream &os) const;
 
 private:
     double sigma;  // strength of prior (mags) at each reference point
-    list<PhotoPriorReferencePoint> points;
-    string name;
+    std::list<PhotoPriorReferencePoint> points;
+    std::string name;
     friend class PhotoAlign;  // PhotoAlign can change the global indices
     int globalStartIndex;     // Index of m/a/b in PhotoMapCollection param vector
     int globalMapNumber;      // map number for resource locking
@@ -272,17 +272,17 @@ private:
 // Class that fits to make magnitudes agree
 class PhotoAlign {
 private:
-    list<unique_ptr<Match>> &mlist;
+    std::list<std::unique_ptr<Match>> &mlist;
     PhotoMapCollection &pmc;
-    list<PhotoPrior *> &priors;
+    std::list<PhotoPrior *> &priors;
     double relativeTolerance;
-    set<int> frozenParameters;         // Keep track of degenerate parameters
-    map<string, set<int>> frozenMaps;  // Which atoms have which params frozen
+    std::set<int> frozenParameters;         // Keep track of degenerate parameters
+    std::map<std::string, std::set<int>> frozenMaps;  // Which atoms have which params frozen
     int nPriorParams;
     int maxMapNumber;
     void countPriorParams();  // Update parameter counts, indices, map numbers for priors
 public:
-    PhotoAlign(PhotoMapCollection &pmc_, list<unique_ptr<Match>> &mlist_, list<PhotoPrior *> &priors_)
+    PhotoAlign(PhotoMapCollection &pmc_, std::list<std::unique_ptr<Match>> &mlist_, std::list<PhotoPrior *> &priors_)
             : mlist(mlist_), pmc(pmc_), priors(priors_), relativeTolerance(0.001) {
         countPriorParams();
     }

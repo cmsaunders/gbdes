@@ -18,14 +18,14 @@ namespace astrometry {
     // Constructor with 1 order has terms with sum of x and y powers up to this order.
     // Constructor with 2 orders has all terms w/ powers of x up to orderx, y to ordery
     // Maps set to identity on construction unless polynomial coefficients are given
-    PolyMap(const poly2d::Poly2d& px, const poly2d::Poly2d& py, 
-	    string name="",
+    PolyMap(const poly2d::Poly2d& px, const poly2d::Poly2d& py,
+            std::string name="",
 	    Bounds<double> domain=Bounds<double>(-1.,1.,-1.,1.),
 	    double tol_=0.001/3600.):
       PixelMap(name), xpoly(px), ypoly(py), worldTolerance(tol_) {setDomain(domain);}
       
     PolyMap(int orderx, int ordery,
-	    string name="",
+            std::string name="",
 	    Bounds<double> domain=Bounds<double>(-1.,1.,-1.,1.),
 	    double tol_=0.001/3600.):
       PixelMap(name), xpoly(orderx,ordery), ypoly(orderx,ordery), worldTolerance(tol_) {
@@ -34,7 +34,7 @@ namespace astrometry {
       }
       
     PolyMap(int order,
-	    string name="",
+        std::string name="",
 	    Bounds<double> domain=Bounds<double>(-1.,1.,-1.,1.),
 	    double tol_=0.001/3600.):
       PixelMap(name), xpoly(order), ypoly(order), worldTolerance(tol_) {
@@ -83,12 +83,12 @@ namespace astrometry {
     // Return rectangular bounds that rescale to (-1,1)
     Bounds<double> getDomain() const;
 		   
-    static string type() {return "Poly";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Poly";}
+    virtual std::string getType() const {return type();}
 #ifdef USE_YAML
     static PixelMap* create(const YAML::Node& node,
 			    bool& defaulted,
-			    string name="");
+                std::string name="");
     void write(YAML::Emitter& os) const;
 #endif
     
@@ -110,10 +110,10 @@ namespace astrometry {
   
   class LinearMap: public PixelMap {
   public:
-    LinearMap(const DVector& v_, string name=""): 
+    LinearMap(const DVector& v_, std::string name=""):
       PixelMap(name), v(v_), vinv(DIM) {Assert(v.size()==DIM); makeInv();}
     // The default constructor sets the transformation to identity
-    LinearMap(string name=""): PixelMap(name), v(DIM,0.), vinv(DIM, 0.) {setToIdentity();}
+    LinearMap(std::string name=""): PixelMap(name), v(DIM,0.), vinv(DIM, 0.) {setToIdentity();}
     virtual PixelMap* duplicate() const {return new LinearMap(*this);}
     ~LinearMap() {}
 
@@ -144,12 +144,12 @@ namespace astrometry {
 
     void setToIdentity() {v.setZero(); v[1]=1.; v[5]=1.; vinv.setZero(); vinv[1]=1.; vinv[5]=1.;}
 
-    static string type() {return "Linear";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Linear";}
+    virtual std::string getType() const {return type();}
 #ifdef USE_YAML
     static PixelMap* create(const YAML::Node& node,
 			    bool& defaulted,
-			    string name="");
+                std::string name="");
     void write(YAML::Emitter& os) const;
 #endif
   private:

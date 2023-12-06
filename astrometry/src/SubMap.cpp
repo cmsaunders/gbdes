@@ -9,12 +9,12 @@
 
 using namespace astrometry;
 
-SubMap::SubMap(const list<PixelMap*>& pixelMaps, 
-	       string name,
-	       bool shareMaps): PixelMap(name), 
-				totalFreeParameters(0),
-				ownMaps(!shareMaps),
-				anyColor(false)
+SubMap::SubMap(const std::list<PixelMap*>& pixelMaps,
+               std::string name,
+               bool shareMaps): PixelMap(name),
+               totalFreeParameters(0),
+               ownMaps(!shareMaps),
+               anyColor(false)
 {
   // set up parameter vectors, making all PixelMap parameters free and consectuve by default
   for (auto& i : pixelMaps) {
@@ -44,7 +44,7 @@ SubMap::~SubMap() {
 
 PixelMap*
 SubMap::duplicate() const {
-  list <PixelMap*> pmlist;
+  std::list <PixelMap*> pmlist;
   for (auto i : vMaps)
     pmlist.push_back(i);
   return new SubMap(pmlist, getName(), !ownMaps);
@@ -131,8 +131,8 @@ SubMap::toPix(double xworld, double yworld,
   // xpix and ypix on input are supposed to be guesses at the
   // answer.  Propagate them forward to create a list of guesses
   // of "pixel" coords for all the intermediate steps.
-  vector<double> xguess(nm);
-  vector<double> yguess(nm);
+  std::vector<double> xguess(nm);
+  std:: vector<double> yguess(nm);
   xguess[0] = xpix;
   yguess[0] = ypix;
   for (int iMap=0; iMap<nm-1; iMap++) {

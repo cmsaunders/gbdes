@@ -2,7 +2,7 @@
 #define INSTRUMENT_H
 #include <map>
 #include <memory>
-#include "Std.h"
+#include "Utils.h"
 #include "Bounds.h"
 #include "Astrometry.h"
 #include "NameIndex.h"
@@ -18,15 +18,15 @@
 
 class Instrument {
 public:
-    Instrument(string name_ = "") : name(name_), nDevices(0), band(name_) {}
-    string name;
-    string band;  // "band" could be more generic than instrument name.
+    Instrument(std::string name_ = "") : name(name_), nDevices(0), band(name_) {}
+    std::string name;
+    std::string band;  // "band" could be more generic than instrument name.
     int nDevices;
     NameIndex deviceNames;    // Names of all devices that exist for this instrument
-    vector<string> mapNames;  // Names of instrument PixelMaps for each device
+    std::vector<std::string> mapNames;  // Names of instrument PixelMaps for each device
     // Keep track of range of pixel coords per device
-    vector<Bounds<double>> domains;  // Rectangles bounding pixel coords of objects
-    void addDevice(string devName, const Bounds<double> &devBounds = Bounds<double>()) {
+    std::vector<Bounds<double>> domains;  // Rectangles bounding pixel coords of objects
+    void addDevice(std::string devName, const Bounds<double> &devBounds = Bounds<double>()) {
         deviceNames.append(devName);
         domains.push_back(devBounds);
         mapNames.push_back("");
@@ -40,7 +40,7 @@ public:
 
 class Exposure {
 public:
-    Exposure(const string &name_, const astrometry::SphericalCoords &coords)
+    Exposure(const std::string &name_, const astrometry::SphericalCoords &coords)
             : name(name_),
               projection(coords.duplicate()),
               airmass(1.),
@@ -54,7 +54,7 @@ public:
               astrometricCovariance(0.),
               photometricVariance(0.) {}
     ~Exposure() = default;
-    string name;  // The exposure map will have this name too.
+    std::string name;  // The exposure map will have this name too.
     std::unique_ptr<astrometry::SphericalCoords>
             projection;  // Projection relating world coords to sky for exposure
     int field;
@@ -65,7 +65,7 @@ public:
     double apcorr;
     double weight;                    // Relative weight applied to this exposure during fitting
     double magWeight;                 // ...and for photometry.  Usually 1.
-    string epoch;                     // string-named observation epoch, for time-evolving solutions
+    std::string epoch;                     // string-named observation epoch, for time-evolving solutions
     double pmTDB;                     // Observation time relative to PM reference epoch (yrs)
     astrometry::Vector3 observatory;  // Barycentric ICRS position of observatory
     astrometry::Matrix22
@@ -79,9 +79,9 @@ public:
 
 class ExposuresHelper {
 public:
-    ExposuresHelper(vector<string> expNames_, vector<int> fieldNumbers_, vector<int> instrumentNumbers_,
-                    vector<double> ras_, vector<double> decs_, vector<double> airmasses_,
-                    vector<double> exposureTimes_, vector<double> mjds_, vector<vector<double>> observatories_)
+    ExposuresHelper(std::vector<std::string> expNames_, std::vector<int> fieldNumbers_, std::vector<int> instrumentNumbers_,
+                    std::vector<double> ras_, std::vector<double> decs_, std::vector<double> airmasses_,
+                    std::vector<double> exposureTimes_, std::vector<double> mjds_, std::vector<std::vector<double>> observatories_)
             : expNames(expNames_),
               fieldNumbers(fieldNumbers_),
               instrumentNumbers(instrumentNumbers_),
@@ -91,19 +91,19 @@ public:
               exposureTimes(exposureTimes_),
               mjds(mjds_),
               observatories(observatories_){};
-    vector<string> expNames;
+    std::vector<std::string> expNames;
     // Index of the exposures' fields:
-    vector<int> fieldNumbers;
+    std::vector<int> fieldNumbers;
     // Index of the exposures' instruments;
-    vector<int> instrumentNumbers;
-    vector<double> ras;
-    vector<double> decs;
-    vector<double> airmasses;
-    vector<double> exposureTimes;
-    vector<double> mjds;
-    vector<vector<double>> observatories;
+    std::vector<int> instrumentNumbers;
+    std::vector<double> ras;
+    std::vector<double> decs;
+    std::vector<double> airmasses;
+    std::vector<double> exposureTimes;
+    std::vector<double> mjds;
+    std::vector<std::vector<double>> observatories;
 
-    std::vector<std::unique_ptr<Exposure>> getExposuresVector(const vector<double> &fieldEpochs = std::vector<double>()) {
+    std::vector<std::unique_ptr<Exposure>> getExposuresVector(const std::vector<double> &fieldEpochs = std::vector<double>()) {
         std::vector<std::unique_ptr<Exposure>> tmpExposures;
         tmpExposures.reserve(expNames.size());
         for (int i = 0; i < expNames.size(); i++) {
@@ -142,8 +142,8 @@ public:
     double apcorr;
     double magshift;  // Additive adjustment to all incoming mags (exposure time)
 
-    string wcsName;        // Name of final WCS (and map into field coordinates)
-    string mapName;        // Name of photometry map or astrometric map into exposure coords
+    std::string wcsName;        // Name of final WCS (and map into field coordinates)
+    std::string mapName;        // Name of photometry map or astrometric map into exposure coords
     T1 *map;               // The map from pixel coordinates to field coordinates.
     astrometry::Wcs *wcs;  // Wcs from pixel coordinates to sky coordinates = basemap + field projection
     std::unique_ptr<astrometry::Wcs> startWcs;  // Input Wcs for this extension (owned by this class)

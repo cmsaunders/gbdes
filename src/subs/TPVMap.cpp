@@ -75,7 +75,7 @@ Poly2d ReadPV(const Header *h, int ipv) {
         prefix = "PV2_";
     else
         throw AstrometryError("TPVMap::ReadPV needs ipv=1 or 2");
-    vector<double> coeffs;
+    std::vector<double> coeffs;
     // Convention is that PV1_1 and PV2_1 default to 1. while other
     // coefficients default to 0, so that absence of any keywords equals
     // identity transformation. Keep track of whether linear term PVx_1 was
@@ -168,7 +168,7 @@ void WritePV(const PolyMap &pm, Header &h, int ipv) {
     int pvnumber = 0;
     while (i + j <= order) {
         if (coeffs(i, j) != 0.) {
-            ostringstream oss;
+            std::ostringstream oss;
             oss << prefix << pvnumber;
             h.replace(oss.str(), coeffs(i, j));
         }
@@ -199,7 +199,7 @@ const double POLYSTEP = 1. / 3600.;
 const string linearSuffix = "_cd";
 const string polySuffix = "_pv";
 
-unique_ptr<Wcs> astrometry::readTPV(const img::Header &h, string name) {
+std::unique_ptr<Wcs> astrometry::readTPV(const img::Header &h, string name) {
     Orientation orientIn;
     LinearMap lm = ReadCD(&h, orientIn, name + linearSuffix);
 
@@ -233,7 +233,7 @@ unique_ptr<Wcs> astrometry::readTPV(const img::Header &h, string name) {
             pv = new PolyMap(p1Identity, p2, polyName, Bounds<double>(-1., 1., -1., 1.), POLYSTEP);
         }
     }
-    list<PixelMap *> pmlist;
+    std::list<PixelMap *> pmlist;
     pmlist.push_back(&lm);
     if (pv) pmlist.push_back(pv);
     // Create a SubMap that owns a duplicate of these one or two maps (no sharing):
@@ -241,7 +241,7 @@ unique_ptr<Wcs> astrometry::readTPV(const img::Header &h, string name) {
     // Delete the polymap if we made it:
     delete pv;
     // Return the Wcs, which again makes its own copy of the maps (no sharing):
-    return unique_ptr<Wcs>(new Wcs(&sm, tp, name, DEGREE, false));
+    return std::unique_ptr<Wcs>(new Wcs(&sm, tp, name, DEGREE, false));
 }
 
 double astrometry::NChooseK(int n, int k) {
@@ -262,7 +262,7 @@ DMatrix astrometry::binom(DVector xyTerm, int power) {
     return outBinom;
 }
 
-shared_ptr<Wcs> astrometry::readTPVFromSIP(const map<string, double> &header, string name) {
+std::shared_ptr<Wcs> astrometry::readTPVFromSIP(const std::map<std::string, double> &header, string name) {
     
     double lon, lat;
     double crpix1, crpix2;
@@ -384,7 +384,7 @@ shared_ptr<Wcs> astrometry::readTPVFromSIP(const map<string, double> &header, st
             pv = new PolyMap(p1Identity, p2, polyName, Bounds<double>(-1., 1., -1., 1.), POLYSTEP);
         }
     }
-    list<PixelMap *> pmlist;
+    std::list<PixelMap *> pmlist;
     pmlist.push_back(&lm);
     if (pv) pmlist.push_back(pv);
     // Create a SubMap that owns a duplicate of these one or two maps (no sharing):
@@ -393,7 +393,7 @@ shared_ptr<Wcs> astrometry::readTPVFromSIP(const map<string, double> &header, st
     delete pv;
     // Return the Wcs, which again makes its own copy of the maps (no sharing):
     
-    return shared_ptr<Wcs>(new Wcs(&sm, tp, name, DEGREE, false));
+    return std::shared_ptr<Wcs>(new Wcs(&sm, tp, name, DEGREE, false));
     
 }
 
@@ -446,7 +446,7 @@ Header astrometry::writeTPV(const Wcs &w) {
 // Now a function that will fit a linear + polynomial + gnomonic deprojection
 // to an arbitrary Wcs
 //////////////////////////////
-unique_ptr<Wcs> astrometry::fitTPV(Bounds<double> b, const Wcs &wcsIn, const SphericalCoords &tpvPole,
+std::unique_ptr<Wcs> astrometry::fitTPV(Bounds<double> b, const Wcs &wcsIn, const SphericalCoords &tpvPole,
                                    string name, double color, double tolerance, double order) {
     int startOrder = 3;
     int maxOrder = 5;
@@ -505,10 +505,10 @@ unique_ptr<Wcs> astrometry::fitTPV(Bounds<double> b, const Wcs &wcsIn, const Sph
 
     // Now construct a set of test points to which we'll fit polynomial:
     const int nGridPoints = 400;  // Number of test points for map initialization
-    vector<double> vxp;
-    vector<double> vyp;
-    vector<double> vxw;
-    vector<double> vyw;
+    std::vector<double> vxp;
+    std::vector<double> vyp;
+    std::vector<double> vxw;
+    std::vector<double> vyw;
 
     double step = sqrt(b.area() / nGridPoints);
     int nx = static_cast<int>(ceil((b.getXMax() - b.getXMin()) / step));
@@ -585,17 +585,17 @@ unique_ptr<Wcs> astrometry::fitTPV(Bounds<double> b, const Wcs &wcsIn, const Sph
     }
 
     if (rms > tolerance) {
-        cerr << "WARNING:  TPVMap RMS is " << rms * DEGREE / ARCSEC << " at maximum order " << polyOrder - 1
-             << " fitting Wcs " << wcsIn.getName() << endl;
+        std::cerr << "WARNING:  TPVMap RMS is " << rms * DEGREE / ARCSEC << " at maximum order " << polyOrder - 1
+             << " fitting Wcs " << wcsIn.getName() << std::endl;
     }
 
     // Continue even if did not meet tolerance:
-    list<PixelMap *> pmlist;
+    std::list<PixelMap *> pmlist;
     pmlist.push_back(&lm);
     pmlist.push_back(pv);
     // Compound the two maps into a SubMap, do not share
     SubMap sm(pmlist, name, false);
     delete pv;
     // And return a Wcs built from this SubMap (Wcs owns the maps)
-    return unique_ptr<Wcs>(new Wcs(&sm, tpvCoords, name, DEGREE, false));
+    return std::unique_ptr<Wcs>(new Wcs(&sm, tpvCoords, name, DEGREE, false));
 }

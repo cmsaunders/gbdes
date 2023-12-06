@@ -132,23 +132,23 @@ namespace img {
     int ncols() const {return D->ncols();}
 
     // Report names of columns
-    vector<string> listColumns() const {return D->listColumns();}
+    std::vector<std::string> listColumns() const {return D->listColumns();}
 
     // Case-insensitive column name search
-    bool hasColumn(const string& colname) const {return D->hasColumn(colname);}
+    bool hasColumn(const std::string& colname) const {return D->hasColumn(colname);}
 
     // Get repeat count of a column's cell: 
     // 1 for scalar, -1 for variable-length, >=0 for fixed.
-    long repeat(string columnName) const {return (*D)[columnName]->repeat();}
+    long repeat(std::string columnName) const {return (*D)[columnName]->repeat();}
    
     // If the column holds strings, return the defined max length of strings, 
     // or -1 for variable-length strings.
-    long stringLength(string columnName) const {
+    long stringLength(std::string columnName) const {
       return (*D)[columnName]->stringLength();
     }
 
     // Get the type of data stored in the C arrays (using the FitsTypes.h class)
-    FITS::DataType elementType(string columnName) const {
+    FITS::DataType elementType(std::string columnName) const {
       return (*D)[columnName]->elementType();
     }
 
@@ -160,12 +160,12 @@ namespace img {
 
     // Access single element (copy created)
     template <class T>
-    void readCell(T& value, string columnName, long row) const {
+    void readCell(T& value, std::string columnName, long row) const {
       D->readCell(value, columnName, row);
     }
     // Or a range: rowEnd is one-past-last row; -1 means go to end.
     template <class T>
-    void readCells(vector<T>& values, string columnName, 
+    void readCells(std::vector<T>& values, std::string columnName,
 		   long rowStart=0, long rowEnd=-1) const {
       D->readCells(values, columnName, rowStart, rowEnd);
     }
@@ -180,7 +180,7 @@ namespace img {
     }
     // Or a range: length of input vector determines rows altered; grow table if needed.
     template <class T>
-    void writeCells(const vector<T>& values, string columnName, long rowStart=0) {
+    void writeCells(const std::vector<T>& values, string columnName, long rowStart=0) {
       D->writeCells(values, columnName, rowStart);
     }
 
@@ -197,7 +197,7 @@ namespace img {
     // they will be stored as fixed-length in FITS files).
     // Exception thrown input arrays/strings are too long for fixed-length fields
     template<class T>
-      void addColumn(const vector<T>& values, string columnName, long repeat=-1,
+      void addColumn(const std::vector<T>& values, string columnName, long repeat=-1,
 		     long stringLength=-1 ) {
       D->addColumn(values, columnName, repeat, stringLength);
     }
@@ -222,11 +222,11 @@ namespace img {
     // Get new table with rows chosen various ways:
     // range of row numbers; also keep only columns that match one of the regexp's:
     FTable extract(long rowStart=0, long rowEnd=-1,
-		   const vector<string>& regexps
-		   = vector<string>(1,".*")) const;
+		   const std::vector<std::string>& regexps
+		   = std::vector<string>(1,".*")) const;
 
     // bool that signals inclusion of a row
-    FTable extractRows(vector<bool>& vb) const;
+    FTable extractRows(std::vector<bool>& vb) const;
 
     // expression to evaluate for a row
     FTable extractRows(const string& expression) const;
@@ -244,10 +244,10 @@ namespace img {
 
     // Same as above but change internally rather than issuing new FTable
     void filter(long rowStart=0, long rowEnd=-1,
-		const vector<string>& regexps
-		= vector<string>(1,".*"));
+		const std::vector<std::string>& regexps
+		= std::vector<string>(1,".*"));
     // bool that signals inclusion of a row
-    void filterRows(vector<bool>& vb);
+    void filterRows(std::vector<bool>& vb);
     // expression to evaluate for a row
     void filterRows(const string& expression);
     // rows with column's value in container
@@ -260,7 +260,7 @@ namespace img {
     // Evaluate arithmetic / logical expression on columns, 
     // convert to type T and place in vector
     template <class T>
-    void evaluate(vector<T>& result, string expression) {
+    void evaluate(std::vector<T>& result, string expression) {
       D->evaluate(result, expression, H);
     }
 

@@ -25,21 +25,21 @@ namespace photometry {
   class PhotoTemplate: public PhotoMap {
   public:
     // Build a template with single lookup table:
-    PhotoTemplate(string tableName,
-		  string filename_,
-		  string name_);
+    PhotoTemplate(std::string tableName,
+		  std::string filename_,
+		  std::string name_);
 
     // Build a template that has two lookup tables for x above/below the split
     PhotoTemplate(double xSplit_,
-		  string lowName, string highName,
-		  string filename_,
-		  string name_);
+		  std::string lowName, std::string highName,
+		  std::string filename_,
+		  std::string name_);
 
     virtual ~PhotoTemplate() {} // Don't delete tables, they belong to cache
     virtual PhotoMap* duplicate() const {return new PhotoTemplate(*this);}
 
-    static string type() {return "Template";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Template";}
+    virtual std::string getType() const {return type();}
 
     virtual double forward(double magIn, const PhotoArguments& args) const {
       return magIn + scaling*value(args);
@@ -61,7 +61,7 @@ namespace photometry {
     }
 
     virtual void write(YAML::Emitter& os) const;
-    static PhotoMap* create(const YAML::Node& node, string name);
+    static PhotoMap* create(const YAML::Node& node, std::string name);
 
   private:
     // If and where to split into two lookup tables at a specific X
@@ -78,9 +78,9 @@ namespace photometry {
 	return tableLow->value(args.xDevice, args.yDevice);
     }
     // Origin of the tabulated data:
-    string tableLowName;
-    string tableHighName;
-    string filename;
+    std::string tableLowName;
+    std::string tableHighName;
+    std::string filename;
 
     // The parameter of this map is multiplicative factor on the table:
     double scaling;

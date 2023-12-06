@@ -85,7 +85,7 @@ ReadASCIIHeader(string in) {
 }
 
 Header
-img::HeaderFromStream(istream& is) {
+img::HeaderFromStream(std::istream& is) {
   Header h;
   string buffer;
   while (getline(is, buffer)) {
@@ -100,11 +100,11 @@ img::HeaderFromStream(istream& is) {
   return h;
 }
 
-ostream&
-operator<<(ostream& os,
+std::ostream&
+operator<<(std::ostream& os,
 	   const img::Header& h) {
   for (h.rewind(); !h.atEnd(); h.incr())
-    os << h.current()->writeCard() << endl;
-  os << "END     " << endl;
+    os << h.current()->writeCard() << std::endl;
+  os << "END     " << std::endl;
   return os;
 }

@@ -4,7 +4,7 @@
 #include <map>
 #include <algorithm>
 
-#include "Std.h"
+#include "Utils.h"
 #include "Astrometry.h"
 #include "FitsTable.h"
 #include "StringStuff.h"
@@ -19,7 +19,6 @@
 #include "FitSubroutines.h"
 #include "MapDegeneracies.h"
 
-using namespace std;
 using namespace stringstuff;
 using namespace photometry;
 using img::FTable;

@@ -3,7 +3,7 @@
 #define DECAMINFO_H
 
 #include <map>
-#include "Std.h"
+#include "Utils.h"
 #include "Bounds.h"
 #include "Wcs.h"
 #include "PixelMapCollection.h"
@@ -19,14 +19,14 @@ public:
 };
 
 // Return a DETPOS-indexed container of Devices - unit norms
-std::map<string, Device> decamInfo();
+std::map<std::string, Device> decamInfo();
 
 // Function to return the 1-indexed, inclusive bounds of pixels in trimmed
 // image read from designated amplifier.
-Bounds<int> datasec(const string detpos, const string amp);
+Bounds<int> datasec(const std::string detpos, const std::string amp);
 
 // Load a set of normalizations from a file into the Device map
-void getDeviceNorms(string filename, std::map<string, Device> &devices);
+void getDeviceNorms(std::string filename, std::map<std::string, Device> &devices);
 
 // Class that will map between field coordinates (in degrees) and pixel coords,
 // using a particular fixed astrometric solution.
@@ -34,19 +34,19 @@ class DECamMap {
 public:
     DECamMap();
     // Choose device to which the pixel coords apply
-    void setDevice(string detpos);
+    void setDevice(std::string detpos);
     void toPix(double xField, double yField, double &xPix, double &yPix) const;
     void toField(double xPix, double yPix, double &xField, double &yField) const;
 
 private:
     DECamMap(const DECamMap &rhs) = delete;
     void operator=(const DECamMap &rhs) = delete;
-    const string prefix;
+    const std::string prefix;
     astrometry::PixelMapCollection pmc;
     double centerX;
     double centerY;
     astrometry::PixelMap *pixmap;
-    static string referenceMap;
+    static std::string referenceMap;
 };
 
 }  // end namespace decam

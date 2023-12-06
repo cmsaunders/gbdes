@@ -9,8 +9,8 @@
 
 using namespace photometry;
 
-SubMap::SubMap(const list<PhotoMap*>& photoMaps, 
-	       string name,
+SubMap::SubMap(const std::list<PhotoMap*>& photoMaps,
+	       std::string name,
 	       bool shareMaps): PhotoMap(name), 
 				totalFreeParameters(0),
 				ownMaps(!shareMaps)
@@ -44,7 +44,7 @@ SubMap::~SubMap() {
 
 PhotoMap*
 SubMap::duplicate() const {
-  list <PhotoMap*> pmlist;
+  std::list <PhotoMap*> pmlist;
   for (auto i : vMaps)
     pmlist.push_back(i);
   return new SubMap(pmlist, getName(), !ownMaps);

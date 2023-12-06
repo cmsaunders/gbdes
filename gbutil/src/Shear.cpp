@@ -1,7 +1,8 @@
 // Functions for the Shear class
 #include "Shear.h"
-#include <assert.h>
+#include <cassert>
 #include <limits>
+#include <iostream>
 // Convention for Shear addition is that s1 + s2 is shear by s1
 // followed by shear of s2.  Note that this differs from the
 // notation in the methods paper.
@@ -160,24 +161,24 @@ Shear operator*(const double d, const Shear& s) {
   return out;
 }
 
-void Shear::write(ostream& fout) const {
+void Shear::write(std::ostream& fout) const {
   fout << "(" << e1 << "," << e2 << ")" ;
 }
 
-ostream& 
-operator<<(ostream& os, const Shear& s) {
+std::ostream&
+operator<<(std::ostream& os, const Shear& s) {
   s.write(os);
   return os;
 }
 
-void Shear::read(istream& fin) {
+void Shear::read(std::istream& fin) {
   char ch;
   hasMatrix = false;
   fin >> ch >> e1 >> ch >> e2 >> ch ;
 }
 
-istream& 
-operator<<(istream& is, Shear& s) {
+std::istream&
+operator<<(std::istream& is, Shear& s) {
   s.read(is);
   return is;
 }
@@ -311,11 +312,11 @@ Ellipse Ellipse::operator-(const Ellipse& rhs) const {
   return out;
 }
 
-void Ellipse::write(ostream& fout) const {
+void Ellipse::write(std::ostream& fout) const {
   s.write(fout); fout << " " << mu << " " ; x0.write(fout);
 }
 
-void Ellipse::read(istream& fin) {
+void Ellipse::read(std::istream& fin) {
   s.read(fin); fin >> mu; x0.read(fin);
 }
 

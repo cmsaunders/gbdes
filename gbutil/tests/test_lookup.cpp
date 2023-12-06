@@ -4,7 +4,6 @@
 
 #include "Lookup1d.h"
 using namespace lookup;
-using namespace std;
 
 string usage = 
   "Basic trials of the Lookup1d class.  \n"

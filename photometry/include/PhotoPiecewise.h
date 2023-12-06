@@ -24,7 +24,7 @@ namespace photometry {
     enum Coordinate {X,Y,R}; // Which axis is the Table being applied to
 
     // Build a map with zeros at all nodes
-    PhotoPiecewise(string name_,
+    PhotoPiecewise(std::string name_,
 	     double argStart_,
 	     double argEnd,
 	     double argStep_,
@@ -34,7 +34,7 @@ namespace photometry {
 
     // Build a map with starting values
     // Value at first and last nodes is forced to zero.
-    PhotoPiecewise(string name_,
+    PhotoPiecewise(std::string name_,
 	     double argStart_,
 	     double argStep_,
 	     const DVector& values,
@@ -60,14 +60,14 @@ namespace photometry {
     virtual DVector getParams() const;
     virtual int nParams() const {return v.size()-2;}
 
-    static string type() {return "Piecewise";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Piecewise";}
+    virtual std::string getType() const {return type();}
 
-    static PhotoMap* create(const YAML::Node& node, string name_="");
+    static PhotoMap* create(const YAML::Node& node, std::string name_="");
     virtual void write(YAML::Emitter& os) const;
 
   private:
-    string name;
+    std::string name;
 
     Coordinate axis;
     double argStart;

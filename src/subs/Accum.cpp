@@ -107,16 +107,16 @@ double Accum<S>::reducedChisq() const {
 
 template <class S>
 string Accum<S>::summary() const {
-    ostringstream oss;
-    oss << setw(5) << n << fixed << setprecision(0) << noshowpoint << " " << setw(6) << sumdof << fixed
-        << setprecision(1) << "  " << setw(5) << (n * 100.) / ntot << fixed << setprecision(1) << "  "
-        << setw(4) << (nclipped * 100.) / ntot;
+    std::ostringstream oss;
+    oss << std::setw(5) << n << std::fixed << std::setprecision(0) << std::noshowpoint << " " << std::setw(6) << sumdof << std::fixed
+        << std::setprecision(1) << "  " << std::setw(5) << (n * 100.) / ntot << std::fixed << std::setprecision(1) << "  "
+        << std::setw(4) << (nclipped * 100.) / ntot;
     if (S::isAstro) {
-        oss << fixed << setprecision(3) << " " << setw(6) << rms();
+        oss << std::fixed << std::setprecision(3) << " " << std::setw(6) << rms();
     } else {
-        oss << fixed << setprecision(3) << " " << setw(6) << rms() / MMAG;
+        oss << std::fixed << std::setprecision(3) << " " << std::setw(6) << rms() / MMAG;
     }
-    oss << fixed << setprecision(5) << "  " << setw(6) << reducedChisq();
+    oss << std::fixed << std::setprecision(5) << "  " << std::setw(6) << reducedChisq();
     return oss.str();
 }
 

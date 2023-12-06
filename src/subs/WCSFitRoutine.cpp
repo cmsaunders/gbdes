@@ -26,7 +26,7 @@ WCSFit::WCSFit(Fields &fields_, std::vector<std::shared_ptr<Instrument>> instrum
     setExposures(exposures_.getExposuresVector(fields.epochs()), sysErr, refSysErr);
     // Set Extensions:
     extensions.reserve(extensionExposureNumbers.size());
-    colorExtensions = vector<unique_ptr<typename Astro::ColorExtension>>(extensionExposureNumbers.size());
+    colorExtensions = std::vector<std::unique_ptr<typename Astro::ColorExtension>>(extensionExposureNumbers.size());
     for (int i = 0; i < extensionExposureNumbers.size(); i++) {
         std::unique_ptr<Extension> extn(new Extension());
         int iExposure = extensionExposureNumbers[i];
@@ -336,7 +336,7 @@ void WCSFit::setupMaps(astrometry::YAMLCollector &inputYAML, std::string fixMaps
   // Recalculate all parameter indices - maps are ready to roll!
   mapCollection.rebuildParameterVector();
 
-  cout << "# Total number of free map elements " << mapCollection.nFreeMaps() << " with "
+  std::cout << "# Total number of free map elements " << mapCollection.nFreeMaps() << " with "
        << mapCollection.nParams() << " free parameters." << std::endl;
 
   // Figure out which extensions' maps require a color entry to function
@@ -360,7 +360,7 @@ void WCSFit::setMatches(const std::vector<int> &sequence, const std::vector<LONG
                        usePM);
 }
 
-void WCSFit::setObjects(int i, const map<std::string, std::vector<double>> &tableMap, const std::string &xKey,
+void WCSFit::setObjects(int i, const std::map<std::string, std::vector<double>> &tableMap, const std::string &xKey,
                         const std::string &yKey, const std::vector<std::string> &xyErrKeys,
                         const std::string &idKey, const std::string &pmCovKey, const std::string &magKey,
                         const int &magKeyElement, const std::string &magErrKey, const int &magErrKeyElement,
@@ -371,7 +371,7 @@ void WCSFit::setObjects(int i, const map<std::string, std::vector<double>> &tabl
         ff.addColumn<double>(x.second, x.first);
     }
     if (pmCovKey != "") {
-        ff.addColumn<vector<double>>(pmCov, pmCovKey);
+        ff.addColumn<std::vector<double>>(pmCov, pmCovKey);
     }
 
     readObjects_oneExtension<Astro>(exposures, i, ff, xKey, yKey, idKey, pmCovKey, xyErrKeys, magKey,
@@ -417,7 +417,7 @@ void WCSFit::fit(double maxError, int minFitExposures, double reserveFraction, i
     // Freeze parameters of an exposure model and clip all
     // Detections that were going to use it.
     for (auto i : badExposures) {
-        cout << "WARNING: Shutting down exposure map " << i.first << " with only "
+        std::cout << "WARNING: Shutting down exposure map " << i.first << " with only "
                 << i.second << " fitted detections " << std::endl;
         freezeMap<Astro>(i.first, matches, extensions, mapCollection);
     }
@@ -428,7 +428,7 @@ void WCSFit::fit(double maxError, int minFitExposures, double reserveFraction, i
     }
 
     PROGRESS(2, Match census);
-    matchCensus<Astro>(matches, cout);
+    matchCensus<Astro>(matches, std::cout);
 
     ///////////////////////////////////////////////////////////
     // Now do the re-fitting
@@ -520,7 +520,7 @@ void WCSFit::fit(double maxError, int minFitExposures, double reserveFraction, i
     //////////////////////////////////////
 
     // Report summary of residuals to stdout
-    Astro::reportStatistics(matches, exposures, extensions, cout);
+    Astro::reportStatistics(matches, exposures, extensions, std::cout);
 }
 
 Astro::outputCatalog WCSFit::getOutputCatalog() {
@@ -551,7 +551,7 @@ void WCSFit::saveResults(std::string outWcs, std::string outCatalog, std::string
     PROGRESS(2, Saving astrometric parameters);
     // Save the pointwise fitting results
     {
-        ofstream ofs(outWcs.c_str());
+        std::ofstream ofs(outWcs.c_str());
         if (!ofs) {
             std::cerr << "Error trying to open output file for fitted Wcs: " << outWcs << std::endl;
             // *** will not quit before dumping output ***

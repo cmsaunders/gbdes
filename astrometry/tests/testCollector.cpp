@@ -1,6 +1,5 @@
 // Test the YAMLCollector class
 #include "YAMLCollector.h"
-using namespace std;
 using namespace astrometry;
 
 int main(int argc,

@@ -1,10 +1,12 @@
 // FITSFile and FITSImage manipulations
 #include "FITS.h"
 #include <algorithm>
+#include <list>
+#include <iostream>
 using namespace FITS;
 
 // Static bookkeeping structures:
-list<const FitsioHandle*>
+std::list<const FitsioHandle*>
 FitsioHandle::openFiles;
 
 FitsFile::HMap FitsFile::readFiles;
@@ -12,14 +14,14 @@ FitsFile::HMap FitsFile::writeFiles;
 
 // Function to unroll the CFITSIO error stack into exception string
 void
-FITS::throw_CFITSIO(const string m1) {
+FITS::throw_CFITSIO(const string& m1) {
   string m= m1 + " CFITSIO Error: ";
   char ebuff[FLEN_ERRMSG];
   while (fits_read_errmsg(ebuff)) {m+= "\n\t"; m+=ebuff;}
   // Do not throw if we are already unwinding stack from
   // another thrown exception:
   if (std::uncaught_exceptions()) {
-    cerr << "During exception processing: " << m << endl;
+    std::cerr << "During exception processing: " << m << std::endl;
   } else {
     throw FITSError(m);
   }
@@ -29,9 +31,9 @@ FITS::throw_CFITSIO(const string m1) {
 // Use this for things that might be thrown in destructor
 // But be careful, does not interrupt control flow!!!
 void
-FITS::throwFitsOrDump(const string err) {
+FITS::throwFitsOrDump(const string& err) {
   if (std::uncaught_exceptions())
-    cerr << "During exception processing: " << err << endl;
+    std::cerr << "During exception processing: " << err << std::endl;
   else
     throw FITSError(err);
 }
@@ -42,7 +44,7 @@ FITS::flushFitsErrors() {
 }
 
 // FitsFile constructor:  open the file to test for existence
-FitsFile::FitsFile(const string& fname, Flags f) {
+FitsFile::FitsFile(const string& fname, const Flags& f) {
   typedef std::pair<string,HCount> Entry;
 
   // First: be careful not to overwrite a file that is already in use,
@@ -73,8 +75,8 @@ FitsFile::~FitsFile() {
   HMap* usemap = isWriteable() ? &writeFiles : &readFiles;
   HMap::iterator j = usemap->find(getFilename());
   if (j==usemap->end()) {
-    ostringstream oss;
-    cerr << "ERROR: Could not find file <" << getFilename()
+    std::ostringstream oss;
+    std::cerr << "ERROR: Could not find file <" << getFilename()
 	 << "> on FitsHandle lists in ~FitsFile()";
   }
   // Decrement link count
@@ -92,8 +94,8 @@ FitsFile::~FitsFile() {
 //////////////////////////////////////////////////////////////////
 
 // FitsioHandle constructor:  open the file to test for existence
-FitsioHandle::FitsioHandle(const string& fname, Flags f): 
-  filename(fname), fitsptr(0) {
+FitsioHandle::FitsioHandle(const string& fname, const Flags& f):
+  filename(fname), fitsptr(nullptr) {
   int status = 0;
   writeable = !(f == FITS::ReadOnly);
   // Try to open the file - prepend "!" to filename to instruct CFITSIO to overwrite
@@ -136,8 +138,8 @@ FitsioHandle::~FitsioHandle() {
     // Find and remove ourself from the list of open files
     lptr me = find(openFiles.begin(), openFiles.end(), this);
     if (me==openFiles.end()) {
-      cerr << "ERROR:  Did not find open file <" + filename 
-	+ "> in FitsioHandle::openFiles!" << endl;;
+      std::cerr << "ERROR:  Did not find open file <" + filename
+	+ "> in FitsioHandle::openFiles!" << std::endl;;
     } else {
       openFiles.erase(me);
     }
@@ -161,7 +163,7 @@ FitsioHandle::useThis() const {
 }
 
 void
-FitsioHandle::makeRoom() const {
+FitsioHandle::makeRoom() {
   static int hashReportInterval=1000;	//issue warning for file hashing.
   // set to zero to disable this reporting.
   static int hashCount=0;	//count # times need to close a file
@@ -171,10 +173,10 @@ FitsioHandle::makeRoom() const {
     openFiles.pop_back();
     hashCount++;
     if (hashReportInterval!=0 && (hashCount%hashReportInterval)==0)
-      cerr << "WARNING: possible FitsioHandle hashing, "
+      std::cerr << "WARNING: possible FitsioHandle hashing, "
 	   << hashCount
 	   << " files closed so far"
-	   << endl;
+	   << std::endl;
   }
 }
 
@@ -193,7 +195,7 @@ FitsioHandle::reopenFile() const {
 
 void
 FitsioHandle::closeFile() const {
-  if (fitsptr==0) return;
+  if (fitsptr==nullptr) return;
   int status=0;
 #ifdef FITSDEBUG
   cerr << "fits_close_file " << filename << endl;
@@ -202,12 +204,12 @@ FitsioHandle::closeFile() const {
   if (status && !std::uncaught_exceptions())
   if (status) throw_CFITSIO("closeFile() on " 
 			    + getFilename());
-  fitsptr = 0;
+  fitsptr = nullptr;
 }
 
 void
 FitsioHandle::flush() {
-  if (fitsptr==0) return;	//No need to flush if no CFITSIO buffer
+  if (fitsptr==nullptr) return;	//No need to flush if no CFITSIO buffer
   int status=0;
   fits_flush_file(fitsptr, &status);
   if (status) throw_CFITSIO("flushing " + filename);
@@ -237,7 +239,7 @@ FitsFile::getHDUType(const int HDUnumber) const {
 }
 
 HDUType
-FitsFile::getHDUType(const string HDUname, int &HDUnum) const {
+FitsFile::getHDUType(const string& HDUname, int &HDUnum) const {
   int status=0, retval;
   if (HDUCount()==0) {
     HDUnum = -1;
@@ -261,7 +263,7 @@ FitsFile::getHDUType(const string HDUname, int &HDUnum) const {
 }
 
 HDUType
-FitsFile::getHDUType(const string HDUname) const {
+FitsFile::getHDUType(const string& HDUname) const {
   int junk;
   return getHDUType(HDUname, junk);
 }

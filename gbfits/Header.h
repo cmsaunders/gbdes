@@ -8,7 +8,7 @@
 #include <algorithm>
 
 #include "FitsTypes.h"
-#include "Std.h"
+#include "Utils.h"
 
 /************************  Header ****************************
  * Contains auxiliary information for Images.  This includes:
@@ -67,7 +67,6 @@
 
 namespace img {
 
-  using namespace std;
 
   // Exception classes:
   class HeaderError: public std::runtime_error {
@@ -165,12 +164,12 @@ namespace img {
     const void* voidPtr() const {return static_cast<const void *> (&val);}
 
     bool setValueString(const string _v) {
-      istringstream iss(_v.c_str());
+        std::istringstream iss(_v.c_str());
       string leftover;
       return !(iss >> val) || (iss >> leftover);
     };
     string getValueString() const {
-      ostringstream os;
+        std::ostringstream os;
       os  << val; 
       return os.str();
     }
@@ -286,7 +285,7 @@ namespace img {
     void operator+=(const Header& rhs) {
       checkLock("operator+=()");
       if (this==&rhs) return;
-      for (list<HdrRecordBase*>::const_iterator rptr=rhs.hlist.begin();
+      for (std::list<HdrRecordBase*>::const_iterator rptr=rhs.hlist.begin();
 	   rptr!=rhs.hlist.end();
 	   ++rptr) {
 	try {erase((*rptr)->getKeyword());} catch (HeaderError &i) {}
@@ -354,7 +353,7 @@ namespace img {
       touch();
     }
     HdrRecordBase* find(const string keyword) {
-      list<HdrRecordBase*>::iterator start(hptr);
+      std::list<HdrRecordBase*>::iterator start(hptr);
       checkLock("find()");
       touch();	// ?? note header is marked as altered just for returning
       // a non-const pointer to header record.

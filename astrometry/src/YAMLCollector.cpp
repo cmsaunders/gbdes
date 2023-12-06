@@ -1,6 +1,6 @@
 #include "YAMLCollector.h"
 #include "StringStuff.h"
-
+#include <fstream>
 #ifdef USE_YAML  // None of this is built without YAML
 
 using namespace astrometry;
@@ -35,9 +35,9 @@ YAMLCollector::YAMLCollector(string specs, string magic_): magic(magic_) {
       throw AstrometryError("YAMLCollector did not find input YAML file "
 			    + filename);
     std::ifstream ifs(filepath.c_str());
-    /**/cerr << "Ready to read YAML input " << filepath << endl;
+    /**/std::cerr << "Ready to read YAML input " << filepath << std::endl;
     addInput(ifs, expr, false);
-    /**/cerr << "...done with " << filepath << endl;
+    /**/std::cerr << "...done with " << filepath << std::endl;
     ifs.close();
   }
   // Add magic word to root node
@@ -45,7 +45,7 @@ YAMLCollector::YAMLCollector(string specs, string magic_): magic(magic_) {
 };
 
 void
-YAMLCollector::addInput(istream& is, string filter, bool prepend) {
+YAMLCollector::addInput(std::istream& is, string filter, bool prepend) {
   if (prepend) 
     inputs.push_front(InFile(is,filter));
   else
@@ -53,7 +53,7 @@ YAMLCollector::addInput(istream& is, string filter, bool prepend) {
   return;
 }
 
-YAMLCollector::InFile::InFile(istream& is, string _filter) {
+YAMLCollector::InFile::InFile(std::istream& is, string _filter) {
   stripWhite(_filter);
   // Default filter is to match anything
   if (_filter.empty())

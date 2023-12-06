@@ -20,11 +20,11 @@
 #include <list>
 #include <map>
 #include <set>
-using std::list;
+#include <vector>
 #include <string>
 #include <vector>
 
-#include "Std.h"
+#include "Utils.h"
 #include "PixelMap.h"
 #include "Wcs.h"
 // Note that these classes won't be very useful without YAML for serialization, but
@@ -51,10 +51,10 @@ namespace astrometry {
   private:
     // The constituent maps and their indices into a master parameter vector,
     // plus an ordinal label in the full collection for each map component:
-    vector<PixelMap*> vMaps;
-    vector<int> vStartIndices;
-    vector<int> vNSubParams;
-    vector<int> vMapNumbers;
+    std::vector<PixelMap*> vMaps;
+    std::vector<int> vStartIndices;
+    std::vector<int> vNSubParams;
+    std::vector<int> vMapNumbers;
 
     bool anyColor;	// True if any of the maps require color
 
@@ -69,7 +69,7 @@ namespace astrometry {
   public:
     // If shareMaps = false, SubMap will make and own duplicates of the input maps.
     // Otherwise it will just copy pointers and assume external ownership.
-    SubMap(const list<PixelMap*>& pixelMaps, string name="", bool shareMaps=false); 
+    SubMap(const std::list<PixelMap*>& pixelMaps, std::string name="", bool shareMaps=false);
     virtual ~SubMap();
     // A duplicate of SubMap will have the same sharing policies as its parent.
     // Also, any information on start indices / nSubParams is lost in duplicate.
@@ -109,8 +109,8 @@ namespace astrometry {
     // Step size for derivatives in "pixel" space - applied to first map in the chain, if any
     virtual double getPixelStep() const;
     virtual void setPixelStep(double ps);
-    static string type() {return "Composite";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Composite";}
+    virtual std::string getType() const {return type();}
 
     virtual bool needsColor() const {return anyColor;}
     
@@ -149,63 +149,63 @@ namespace astrometry {
     void learn(PixelMapCollection& source, bool duplicateNamesAreExceptions=false);
 
     // Mark a WCS as invalid / unused
-    void invalidate(string wcsName);
+    void invalidate(std::string wcsName);
 
     // Purge all map elements that are only used by invalidated WCS's
     void purgeInvalid();
       
     // Define a new pixelMap that is compounding of a list of other PixelMaps.  Order
     // of the list is from pixel to world coordinates.
-    void defineChain(string chainName, const list<string>& elements);
+    void defineChain(std::string chainName, const std::list<std::string>& elements);
     // Define a WCS system to be the given PixelMap followed by projection to the
     // sky described by the nativeCoords system.
-    void defineWcs(string wcsName, const SphericalCoords& nativeCoords, string mapName,
+    void defineWcs(std::string wcsName, const SphericalCoords& nativeCoords, std::string mapName,
 		   double wScale = DEGREE);
 
     // Return pointer to a SubMap realizing the named coordinate transformation
-    SubMap* issueMap(string mapName);
+    SubMap* issueMap(std::string mapName);
     // Return a pointer to a Wcs built from a SubMap and realizing the named coord system
-    Wcs* issueWcs(string wcsName);
+    Wcs* issueWcs(std::string wcsName);
 
     // These two are like the above, except that they return objects that own themselves and
     // all subcomponents, so this PixelMapCollection can be destroyed while cloned map/wcs remain
     // useful.  All parameters of the cloned objects are free though, and disconnected from the
     // PixelMapCollection's master parameter vector.
-    PixelMap* cloneMap(string mapName) const;
-    Wcs* cloneWcs(string wcsName) const;
+    PixelMap* cloneMap(std::string mapName) const;
+    Wcs* cloneWcs(std::string wcsName) const;
     
     // Reassign all parameter indices and update all issued SubMaps (call whenever
     // setFixed or adding new elements with parameters)
     void rebuildParameterVector();
 
     // Create and read serializations of all the maps or just one
-    void write(ostream& os, string comment="") const;
-    void writeMap(ostream& os, string name, string comment="") const;
-    void writeWcs(ostream& os, string name, string comment="") const;
+    void write(std::ostream& os, std::string comment="") const;
+    void writeMap(std::ostream& os, std::string name, std::string comment="") const;
+    void writeWcs(std::ostream& os, std::string name, std::string comment="") const;
     // The read returns false if the stream does not begin with the magicWord for
     // serialized PixelMapCollections. True if success; throws exception for format errors.
-    bool read(istream& is, string namePrefix=""); // prefix added to names of all elements
+    bool read(std::istream& is, std::string namePrefix=""); // prefix added to names of all elements
     
     // Fix or free parameters associated with one or more PixelMap(s).
     // If the chosen map is compound, all components are frozen.
     // This will change parameter index assignments in all issued SubMaps and Wcs's
     // Anything with zero free parameters is always considered fixed
-    void setFixed(set<string> nameList, bool isFixed=true);
-    void setFixed(string name, bool isFixed=true);
-    bool getFixed(string name) const;
+    void setFixed(std::set<std::string> nameList, bool isFixed=true);
+    void setFixed(std::string name, bool isFixed=true);
+    bool getFixed(std::string name) const;
 
     // Get whether a map has any parameters that are still at defaults,
     // i.e. parameters have not yet been set or fit to any data
-    bool getDefaulted(string name) const;
+    bool getDefaulted(std::string name) const;
 
     // Tell whether a map is atomic
-    bool isAtomic(string name) const;
+    bool isAtomic(std::string name) const;
 
     // Set/get the master parameter vector for all PixelMaps
     void setParams(const DVector& p);
     DVector getParams() const;
     // Get the parameter vector for one map, or return an empty DVector if there are no parameters
-    DVector getParams(string mapName) const;
+    DVector getParams(std::string mapName) const;
     std::map<std::string, astrometry::DVector> getParamDict() const;
     int nParams() const {return parameterCount;}
 
@@ -220,35 +220,35 @@ namespace astrometry {
     int nAtomicMaps() const {return atomCount;}
     // Number of maps with free parameters:
     int nFreeMaps() const {return freeCount;}
-    bool mapExists(string name) const {return mapElements.count(name);}
-    vector<string> allMapNames() const;
-    string getMapType(string mapName) const;
+    bool mapExists(std::string name) const {return mapElements.count(name);}
+    std::vector<std::string> allMapNames() const;
+    std::string getMapType(std::string mapName) const;
 
     // And the WCS specified for this collection:
     int nWcs() const {return wcsElements.size();}
-    bool wcsExists(string name) const {return wcsElements.count(name);}
-    vector<string> allWcsNames() const;
+    bool wcsExists(std::string name) const {return wcsElements.count(name);}
+    std::vector<std::string> allWcsNames() const;
     // Get center orientation of a WCS element, default is in radians:
-    DVector getWcsNativeCoords(string wcsName, bool degrees=true) const;
+    DVector getWcsNativeCoords(std::string wcsName, bool degrees=true) const;
 
     // Return whether the map given by first name depends on
     // a map of the second name.
-    bool dependsOn(const string mapName, const string targetName) const;
+    bool dependsOn(const std::string mapName, const std::string targetName) const;
 
     // Return list of names of all map elements needed to fully specify the target.
     // Includes self.  Assumes no dependence cycles.
-    set<string> dependencies(string mapName) const;
+    std::set<std::string> dependencies(std::string mapName) const;
 
     // Produce a list giving the atomic transformation sequence needed to implement a
     // specified map. Assumes no dependence cycles.
-    list<string> orderAtoms(string mapName) const;
+    std::list<std::string> orderAtoms(std::string mapName) const;
 
     // This is a routine useful for debugging: return the name of the atomic
     // map that a certain parameter in the vector belongs to.
-    string atomHavingParameter(int parameterIndex) const;
+    std::string atomHavingParameter(int parameterIndex) const;
     // And a convenience to get the indices of a map's params without
     // having to issue the map.  Returns 0's if map is fixed or compound.
-    void parameterIndicesOf(string mapname, int& startIndex, int& nParams) const;
+    void parameterIndicesOf(std::string mapname, int& startIndex, int& nParams) const;
     
 
     // This routine adds a new type of PixelMap to the parsing dictionary
@@ -259,7 +259,7 @@ namespace astrometry {
 
     // This is a keyword that must appear in a YAML deserialization to
     // indicate a valid PixelMapCollection
-    static const string magicKey;
+    static const std::string magicKey;
     
   private:
     // hide:
@@ -276,7 +276,7 @@ namespace astrometry {
     // Structure for every PixelMap that we know about:
     struct MapElement {
       MapElement(): realization(0), atom(0), isFixed(false), isDefaulted(false), number(-1) {}
-      list<string> subordinateMaps;  // If it's compound, what it will be made from
+      std::list<std::string> subordinateMaps;  // If it's compound, what it will be made from
       SubMap* realization;	     // pointer to its SubMap, if it's been built
       PixelMap* atom;		     // Pointer to the PixelMap itself, if atomic
       int startIndex;		     // Location in the union parameter array
@@ -286,7 +286,7 @@ namespace astrometry {
       bool isDefaulted;		     // True if atom has default parameters
     };
 
-    map<string, MapElement> mapElements;  // all known PixelMaps, indexed by name.
+    std::map<std::string, MapElement> mapElements;  // all known PixelMaps, indexed by name.
 
     // Structure for every WCS that we know about:
     struct WcsElement {
@@ -298,7 +298,7 @@ namespace astrometry {
 	if (rhs.nativeCoords) nativeCoords = rhs.nativeCoords->duplicate();
       }
       ~WcsElement() {if (nativeCoords) delete nativeCoords;}
-      string mapName;	// The PixelMap it should use.
+      std::string mapName;	// The PixelMap it should use.
       // Projection it will use.  We own it.
       SphericalCoords* nativeCoords;
       Wcs* realization;	// Pointer to realization if we've got it.
@@ -308,34 +308,34 @@ namespace astrometry {
       void operator=(const MapElement& rhs); // hide assignment
     };
 
-    map<string, WcsElement> wcsElements; // all known Wcs's, indexed by name.
+    std::map<std::string, WcsElement> wcsElements; // all known Wcs's, indexed by name.
 
     // Remove knowledge of a particular map or WCS and its realization if it exists.
-    void removeMap(string mapName);
-    void removeWcs(string wcsName);  // Does NOT remove the map on which it's based.
+    void removeMap(std::string mapName);
+    void removeWcs(std::string wcsName);  // Does NOT remove the map on which it's based.
 
     // **** Useful utilities: *****
 
     // See if the chain of dependence of a map has any cycles.  Throws exception if so.
-    void checkCircularDependence(string mapName,
-				 const set<string>& ancestors = set<string>()) const;
+    void checkCircularDependence(std::string mapName,
+				 const std::set<std::string>& ancestors = std::set<std::string>()) const;
 
     // Check that all referenced names exist, and that there are no circular dependences.
     void checkCompleteness() const;
 
     // **** Static structures / methods for serialization: ****
     // This routine will write a complete YAML key/value to emitter for this PhotoMap
-    void writeSingleMap(YAML::Emitter& os, const MapElement& mel, string name) const;
-    void writeSingleWcs(YAML::Emitter& os, const WcsElement& wel, string name) const;
+    void writeSingleMap(YAML::Emitter& os, const MapElement& mel, std::string name) const;
+    void writeSingleWcs(YAML::Emitter& os, const WcsElement& wel, std::string name) const;
     PixelMap* createAtomFromNode(const YAML::Node& node,
 				 bool& defaulted,
-				 string name) const;
+                 std::string name) const;
     // Signature of routines to create maps from yaml data; defaulted if
     // parameters were not given explicitly.
     typedef PixelMap* (*Creator)(const YAML::Node& node, bool& defaulted,
-				 string name);
+                       std::string name);
     // Static map of what kind of PixelMaps the parser will be able to identify
-    static map<string, Creator> mapCreators;
+    static std::map<std::string, Creator> mapCreators;
     static bool creatorsInitialized;
     // Call to give parser an initial inventory of map types to create:
     static void PixelMapTypeInitialize();

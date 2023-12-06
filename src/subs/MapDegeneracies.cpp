@@ -3,8 +3,8 @@
 #include "MapDegeneracies.h"
 
 template <class S>
-MapDegeneracies<S>::MapDegeneracies(const vector<unique_ptr<typename S::Extension>> &extensions_,
-                                    const typename S::Collection &mapCollection, const set<string> &mapTypes,
+MapDegeneracies<S>::MapDegeneracies(const std::vector<std::unique_ptr<typename S::Extension>> &extensions_,
+                                    const typename S::Collection &mapCollection, const std::set<string> &mapTypes,
                                     bool defaulted)
         : extensions(extensions_) {
     // Get all map names meeting criteria
@@ -48,19 +48,19 @@ void MapDegeneracies<S>::eraseMap(string mapname) {
 }
 
 template <class S>
-set<int> MapDegeneracies<S>::findNondegenerate() const {
-    set<int> out;
+std::set<int> MapDegeneracies<S>::findNondegenerate() const {
+    std::set<int> out;
     for (auto &m : extns)
         if (m.second.size() == 1) out.insert(m.first);
     return out;
 }
 
 template <class S>
-list<string> MapDegeneracies<S>::replaceWithIdentity(const set<string> &candidates) {
+list<string> MapDegeneracies<S>::replaceWithIdentity(const std::set<string> &candidates) {
     list<string> mapsToReplace;
 
     while (!maps.empty()) {
-        set<string> goodmaps;
+        std::set<string> goodmaps;
         auto goodextns = findNondegenerate();
         if (goodextns.empty()) {
             // We have maps with no clear degeneracy breaking path.
@@ -85,8 +85,8 @@ list<string> MapDegeneracies<S>::replaceWithIdentity(const set<string> &candidat
             // fix simultaneously, by finding all exposures with all but one map
             // that are candidates to fix)
             if (maxFix <= 0) {
-                cerr << "WARNING: no clear path for breaking degeneracy of these maps:" << endl;
-                for (auto m : maps) cerr << "  " << m.first << endl;
+                std::cerr << "WARNING: no clear path for breaking degeneracy of these maps:" << std::endl;
+                for (auto m : maps) std::cerr << "  " << m.first << std::endl;
                 return mapsToReplace;
             }
 
@@ -106,22 +106,22 @@ list<string> MapDegeneracies<S>::replaceWithIdentity(const set<string> &candidat
 }
 
 template <class S>
-list<set<int>> MapDegeneracies<S>::initializationOrder() {
-    list<set<int>> out;
+list<std::set<int>> MapDegeneracies<S>::initializationOrder() {
+    list<std::set<int>> out;
     while (!maps.empty()) {
         auto goodextns = findNondegenerate();
-        cerr << ".." << maps.size() << " maps, " << goodextns.size() << " clean extns"
-             << endl;
+        std::cerr << ".." << maps.size() << " maps, " << goodextns.size() << " clean extns"
+             << std::endl;
         if (goodextns.empty()) {
             // We have maps with no clear degeneracy breaking path.
-            cerr << "ERROR: no path to initialize these maps without degeneracies:" << endl;
-            for (auto &m : maps) cerr << "  " << m.first << endl;
+            std::cerr << "ERROR: no path to initialize these maps without degeneracies:" << std::endl;
+            for (auto &m : maps) std::cerr << "  " << m.first << std::endl;
             throw std::runtime_error("Maps cannot be initialized due to degeneracies.");
         }
 
         // Do everything that can be done - for a given choose all relevant exposures in
         // a given exposure.  Exposure with the most data to contribute now?
-        map<string, map<int, set<int>>> mapCounts;
+        std::map<string, std::map<int, std::set<int>>> mapCounts;
         // First index in map name, 2nd is which exposure it's from, the set is
         // the relevant exposures.
 
@@ -131,7 +131,7 @@ list<set<int>> MapDegeneracies<S>::initializationOrder() {
             if (mapUses == 1) {
                 // This extn's map is not used anywhere else.  Go ahead and add to init list
                 // and erase the map
-                set<int> tmp = {iextn};
+                std::set<int> tmp = {iextn};
                 out.push_back(tmp);
                 eraseMap(itsMap);
                 //**/cerr << "..singleton " << itsMap << endl;
@@ -151,8 +151,8 @@ list<set<int>> MapDegeneracies<S>::initializationOrder() {
                     maxExpo = m2.first;
                 }
             }
-            cerr << "...Do map " << m.first << " from exposure " << maxExpo << " with "
-                 << maxCount << " exposures" << endl; /**/
+            std::cerr << "...Do map " << m.first << " from exposure " << maxExpo << " with "
+                 << maxCount << " exposures" << std::endl; /**/
             out.push_back(m.second[maxExpo]);
             eraseMap(m.first);
         }

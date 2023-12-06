@@ -7,17 +7,17 @@ using namespace astrometry;
 
 class MapMarq {
 public:
-    MapMarq(const list<Detection *> &dets_, PixelMap *pm_) : dets(dets_), pm(pm_), sigma(1.) {}
+    MapMarq(const std::list<Detection *> &dets_, PixelMap *pm_) : dets(dets_), pm(pm_), sigma(1.) {}
     void operator()(const DVector &a, double &chisq, DVector &beta, DMatrix &alpha);
     void setSigma(double s) { sigma = s; }
 
 private:
-    const list<Detection *> &dets;
+    const std::list<Detection *> &dets;
     PixelMap *pm;
     double sigma;
 };
 
-void astrometry::mapFit(list<Detection *> testPoints, PixelMap *pm, double sigma) {
+void astrometry::mapFit(std::list<Detection *> testPoints, PixelMap *pm, double sigma) {
     MapMarq mm(testPoints, pm);
     mm.setSigma(sigma);
     Marquardt<MapMarq> marq(mm);

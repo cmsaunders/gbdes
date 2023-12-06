@@ -9,7 +9,7 @@
 
 #ifndef SHEAR_H
 #define SHEAR_H
-#include <math.h>
+#include <cmath>
 #include "LinearAlgebra.h"
 #include "Bounds.h"
 
@@ -21,7 +21,7 @@
 // Beta is always the position angle of major axis.
 
 class Shear {
-  friend Shear operator*(const double, const Shear &);
+  friend Shear operator*(double, const Shear &);
  public:
   explicit Shear(double _e1=0., double _e2=0.): e1(_e1),e2(_e2),
     hasMatrix(false) {}		//Construct w/o variance
@@ -82,10 +82,10 @@ class Shear {
 
   // Multiplication/division by scalar is done on the e representation
   // of the shear, not correct for g or eta.
-  Shear  operator*(const double);
-  Shear  operator/(const double);
-  Shear& operator*=(const double);
-  Shear& operator/=(const double);
+  Shear  operator*(double);
+  Shear  operator/(double);
+  Shear& operator*=(double);
+  Shear& operator/=(double);
 
   // Classes that treat shear as a point-set map:
   template <class T>
@@ -116,10 +116,10 @@ class Shear {
   void	getMatrix(double &a, double &b, double &c) const {
     calcMatrix(); a=matrixA; b=matrixB; c=matrixC;}
 
-  void write(ostream& fout) const;
-  friend ostream& operator<<(ostream& os, const Shear& s);
-  void read(istream& fin);
-  friend istream& operator>>(istream& is, Shear& s);
+  void write(std::ostream& fout) const;
+  friend std::ostream& operator<<(std::ostream& os, const Shear& s);
+  void read(std::istream& fin);
+  friend std::istream& operator>>(std::istream& is, Shear& s);
  private:
   void copyMatrix(const Shear& s) {
     if (s.hasMatrix) {
@@ -131,14 +131,14 @@ class Shear {
   void calcMatrix() const;
   double e1, e2;
   // Matrix elements for forward/inverse x/y mapping
-  mutable bool hasMatrix;
-  mutable double matrixA, matrixB, matrixC;
+  mutable bool hasMatrix{};
+  mutable double matrixA{}, matrixB{}, matrixC{};
 };
 
-ostream& 
-operator<<(ostream& os, const Shear& s);
-istream& 
-operator>>(istream& is, Shear& s);
+std::ostream&
+operator<<(std::ostream& os, const Shear& s);
+std::istream&
+operator>>(std::istream& is, Shear& s);
 
 // Class to describe transformation from an ellipse
 // with center x0, size exp(mu), and shape s to the unit circle.
@@ -210,8 +210,8 @@ class Ellipse {
     double junk; bool p; return fromMatrix(m, junk, p);
   }
 
-  void write(ostream& fout) const;
-  void read(istream& fin);
+  void write(std::ostream& fout) const;
+  void read(std::istream& fin);
 
  private:
   Shear s;
@@ -221,8 +221,8 @@ class Ellipse {
 };
 
 inline
-ostream& operator<<(ostream& os, const Ellipse& e) {e.write(os); return os;}
+std::ostream& operator<<(std::ostream& os, const Ellipse& e) {e.write(os); return os;}
 inline
-istream& operator>>(istream& is, Ellipse& e) {e.read(is); return is;}
+std::istream& operator>>(std::istream& is, Ellipse& e) {e.read(is); return is;}
 
 #endif // SHEAR_H

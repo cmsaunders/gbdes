@@ -81,7 +81,7 @@ bool ExtensionAttribute<int>::readInputTable(const FTable &inTable, long row) {
         headerKeyword = vstring.substr(1);
         value = defaultValue;
     } else {
-        istringstream iss(vstring);
+        std::istringstream iss(vstring);
         iss >> value;
         if (iss.fail()) throw std::runtime_error("Could not convert attribute <" + vstring + ">to int");
     }
@@ -119,7 +119,7 @@ bool ExtensionAttribute<double>::readInputTable(const FTable &inTable, long row)
         headerKeyword = vstring.substr(1);
         value = defaultValue;
     } else {
-        istringstream iss(vstring);
+        std::istringstream iss(vstring);
         iss >> value;
         if (iss.fail()) throw std::runtime_error("Could not convert attribute <" + vstring + ">to double");
     }
@@ -129,8 +129,8 @@ bool ExtensionAttribute<double>::readInputTable(const FTable &inTable, long row)
 template <class T>
 void ExtensionAttribute<T>::makeOutputColumn(FTable &outTable) const {
     if (!isOutput) return;
-    vector<T> v;
-    /**/ cerr << "Making output column for <" << columnName << ">" << endl;
+    std::vector<T> v;
+    /**/ std::cerr << "Making output column for <" << columnName << ">" << std::endl;
     outTable.addColumn(v, columnName);
 }
 template <class T>
@@ -166,7 +166,7 @@ bool ExtensionAttribute<string>::checkHeader(const Header &h) {
         value = defaultValue;
         return false;
     }
-    ostringstream oss;
+    std::ostringstream oss;
     oss << i;
     value = oss.str();
     return true;

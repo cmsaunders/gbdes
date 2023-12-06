@@ -4,7 +4,7 @@
 
 #ifndef SIMPSON_H
 #define SIMPSON_H
-#include "Std.h"
+#include "Utils.h"
 
 //Exception thrown when too many steps required:
 class IntegralNonConvergent: public std::runtime_error {

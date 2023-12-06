@@ -2,7 +2,7 @@
 #include <sstream>
 #include <map>
 
-#include "Std.h"
+#include "Utils.h"
 #include "StringStuff.h"
 #include "Astrometry.h"
 #include "PixelMapCollection.h"
@@ -10,7 +10,6 @@
 #include "PiecewiseMap.h"
 #include "Header.h"
 #include "TPVMap.h"
-using namespace std;
 using namespace astrometry;
 
 string usage =

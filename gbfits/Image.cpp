@@ -5,7 +5,6 @@
 #include <cctype>
 
 using namespace img;
-using namespace std;
 
 /////////////////////////////////////////////////////////////////////
 // Routines for the underlying data structure ImageData
@@ -17,7 +16,7 @@ ImageData<T>::clearChanged() {
   if (parent) 
     throw ImageError("ImageData::clearChanged() called for a subimage");
   isAltered = false;
-  for (typename list<ImageData<T>*>::iterator i = children.begin();
+  for (typename std::list<ImageData<T>*>::iterator i = children.begin();
        i != children.end();
        ++i)
     (*i)->isAltered = false;
@@ -140,8 +139,8 @@ template <class T>
 ImageData<T>::~ImageData() {
   if (!children.empty() ) {
     // Do not throw from within destructor, just print error, quit
-    cerr << "ERROR: ImageData::~ImageData for object that still has children"
-	 <<endl;
+      std::cerr << "ERROR: ImageData::~ImageData for object that still has children"
+	 <<std::endl;
     exit(1);
   }
   if (parent) parent->unlinkChild(this);
@@ -155,7 +154,7 @@ ImageData<T>::unlinkChild(ImageData<T>* child) const {
 #pragma omp critical(imageio)
 #endif
   {
-    typename list<ImageData<T>*>::iterator cptr =
+    typename std::list<ImageData<T>*>::iterator cptr =
       find(children.begin(), children.end(), child);
     if (cptr==children.end() && !std::uncaught_exceptions())
       throw ImageError("ImageData::unlinkChild cannot find the child");
@@ -352,28 +351,28 @@ void
 Image<T>::operator+=(const Image<T> rhs) {
   if (!getBounds().includes(rhs.getBounds())) 
     throw ImageError("this does not bound rhs in +=");
-  transform_pixel(*this, rhs, plus<T>());
+  transform_pixel(*this, rhs, std::plus<T>());
 }
 template <class T>
 void
 Image<T>::operator-=(const Image<T> rhs) {
   if (!getBounds().includes(rhs.getBounds())) 
     throw ImageError("this does not bound rhs in -=");
-  transform_pixel(*this, rhs, minus<T>());
+  transform_pixel(*this, rhs, std::minus<T>());
 }
 template <class T>
 void
 Image<T>::operator*=(const Image<T> rhs) {
   if (!getBounds().includes(rhs.getBounds())) 
     throw ImageError("this does not bound rhs in *=");
-  transform_pixel(*this, rhs, multiplies<T>());
+  transform_pixel(*this, rhs, std::multiplies<T>());
 }
 template <class T>
 void
 Image<T>::operator/=(const Image<T> rhs) {
   if (!getBounds().includes(rhs.getBounds())) 
     throw ImageError("this does not bound rhs in /=");
-  transform_pixel(*this, rhs, divides<T>());
+  transform_pixel(*this, rhs, std::divides<T>());
 }
 
 template <class T>
@@ -382,7 +381,7 @@ Image<T>::operator+(const Image<T> rhs) const {
   if (getBounds() != rhs.getBounds()) 
     throw ImageError("Mismatched image bound for +");
   Image<T> result(getBounds());
-  transform_pixel(result, *this, rhs, plus<T>());
+  transform_pixel(result, *this, rhs, std::plus<T>());
   return result;
 }
 template <class T>
@@ -391,7 +390,7 @@ Image<T>::operator-(const Image<T> rhs) const {
   if (getBounds() != rhs.getBounds()) 
     throw ImageError("Mismatched image bounds for -");
   Image<T> result(getBounds());
-  transform_pixel(result, *this, rhs, minus<T>());
+  transform_pixel(result, *this, rhs, std::minus<T>());
   return result;
 }
 template <class T>
@@ -400,7 +399,7 @@ Image<T>::operator*(const Image<T> rhs) const {
   if (getBounds() != rhs.getBounds()) 
     throw ImageError("Mismatched image bounds for +");
   Image<T> result(getBounds());
-  transform_pixel(result, *this, rhs, multiplies<T>());
+  transform_pixel(result, *this, rhs, std::multiplies<T>());
   return result;
 }
 template <class T>
@@ -409,7 +408,7 @@ Image<T>::operator/(const Image<T> rhs) const {
   if (getBounds() != rhs.getBounds()) 
     throw ImageError("Mismatched image bounds for /");
   Image<T> result(getBounds());
-  transform_pixel(result, *this, rhs, divides<T>());
+  transform_pixel(result, *this, rhs, std::divides<T>());
   return result;
 }
 

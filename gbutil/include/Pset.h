@@ -2,7 +2,7 @@
 #ifndef PSET_H
 #define PSET_H
 
-#include "Std.h"
+#include "Utils.h"
 #include <string>
 #include <list>
 using std::list;
@@ -95,10 +95,10 @@ class PsetMember {
 	     const char *c=""): keyword(k), f(flags(_f)), comment(c) {};
   virtual void setValue(const string &valstring) {};
   virtual void setDefault() {};
-  virtual void dump(ostream &os) const {
-    os << std::setw(12) << keyword.c_str() << "= " 
-       << std::setw(20) << ""
-       << ";" << comment  <<endl;}
+  virtual void dump(std::ostream &os) const {
+      long endl;
+      os << std::setw(12) << keyword.c_str() << "= "
+         << std::setw(20) <<std::endl         << ";" << comment << endl;}
   flags getFlags() const {return f;}
   virtual PsetMember* clone() {return new PsetMember(*this);}
  protected:
@@ -121,11 +121,11 @@ class PsetMem: public PsetMember {
   virtual PsetMem* clone() {return new PsetMem(*this);}
   void setValue(const string &valstring);
   void setDefault() {*valueptr=defval;}
-  virtual void dump(ostream &os) const {
+  virtual void dump(std::ostream &os) const {
     os.setf(std::ios::left, std::ios::adjustfield);
     os << std::setw(12) << keyword.c_str() << "= " 
        << std::setw(20) << *valueptr
-       << ";" << comment  <<endl;}
+       << ";" << comment  <<std::endl;}
 
  private:
   T*	  valueptr;
@@ -150,11 +150,11 @@ class PsetMem<string>: public PsetMember {
     else if (f & hasDefault) setDefault(); 
     else throw PsetNoDefault(keyword); }
   void setDefault() { *valueptr=defval;}
-  virtual void dump(ostream &os) const {
+  virtual void dump(std::ostream &os) const {
     os.setf(std::ios::left, std::ios::adjustfield);
     os << std::setw(12) << keyword.c_str() << "= " //??? not doing what it should...
        << std::setw(20) << valueptr->c_str() 
-       << ";" << comment  <<endl;}
+       << ";" << comment  <<std::endl;}
  private:
   string *valueptr;
   string defval;
@@ -187,11 +187,11 @@ class PsetMem<bool>: public PsetMember {
     else throw PsetFormatError(keyword,valstring);
   }
   void setDefault() { *valueptr=defval;}
-  virtual void dump(ostream &os) const {
+  virtual void dump(std::ostream &os) const {
     os.setf(std::ios::left, std::ios::adjustfield);
     os << std::setw(12) << keyword.c_str() << "= " 
        << std::setw(20) << (*valueptr ? "T " : "F ")
-       << ";" << comment  <<endl;}
+       << ";" << comment  <<std::endl;}
  private:
   bool *valueptr;
   bool defval;
@@ -284,7 +284,7 @@ class Pset {
 			const char *c="") ;
   void setDefault() {
     for (iter p=l.begin(); p!=l.end(); ++p) (*p)->setDefault();}
-  void dump(ostream &os) const {
+  void dump(std::ostream &os) const {
     for (citer p=l.begin(); p!=l.end(); ++p) (*p)->dump(os);}
   void setKeyValue(const string &keyword, const string &value) {
     iter p=find_if(l.begin(), l.end(), PsetKeywordTest(keyword));
@@ -294,7 +294,7 @@ class Pset {
   // read many lines of specification, glean all useful ones.
   // throw KeywordNotFound only after going through all lines.
   // Return is true if any input was read from stream, false if it was empty.
-  bool setStream(istream &is) {
+  bool setStream(std::istream &is) {
     const char ContinuationCharacter='\\';
     string line, keyword, value;
     PsetKeywordNotFound ex("none");

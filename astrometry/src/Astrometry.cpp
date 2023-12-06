@@ -5,7 +5,6 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
-using namespace std;
 #include <cmath>
 
 #include "LeapSeconds.h" //This has the TAIminusUTC function/table.
@@ -39,7 +38,7 @@ namespace astrometry {
   double 
   dmsdeg(const string& s)
   {
-    vector<double> args(3,0.);
+    std::vector<double> args(3,0.);
     string sub;
     int i,iarg,j,sgn;
 
@@ -179,7 +178,7 @@ namespace astrometry {
       throw AstrometryError("Bad second specification");
     y=y_; mo=m_; 
     d=d_ + (h_+(min_+s_/60.)/60.)/24.;
-    /**/cerr << "y,m,d: " << y << " " << mo << " " << d << endl;
+    /**/std::cerr << "y,m,d: " << y << " " << mo << " " << d << std::endl;
     ymdValid=true; 
     buildJD();
   }
@@ -274,35 +273,35 @@ namespace astrometry {
   }
 
   void
-  UT::writeYMD(ostream& os) const {
+  UT::writeYMD(std::ostream& os) const {
     buildYMD();
     char oldfill = os.fill('0');
-    os << setw(4) << std::right << y
-       << " " << setw(2) << std::right << mo
-       << " " << setw(os.precision()+3) << d; // note 1s = 1e-5 day
+    os << std::setw(4) << std::right << y
+       << " " << std::setw(2) << std::right << mo
+       << " " << std::setw(os.precision()+3) << d; // note 1s = 1e-5 day
     os << std::setfill(oldfill);
   }
 
   void
-  UT::writeYMDHMS(ostream& os) const {
+  UT::writeYMDHMS(std::ostream& os) const {
     int yy, mm, dd, hh, mn;
     double s;
     getYMDHMS(yy,mm,dd,hh,mn,s);
     double h=hh + (mn +s/60.)/60.;
     string hs=deghms(15.*h, 1);
     char oldfill = os.fill('0');
-    os << setw(4) << std::right << y
-       << " " << setw(2) << std::right << mo
-       << " " << setw(2) << std::right << dd
+    os << std::setw(4) << std::right << y
+       << " " << std::setw(2) << std::right << mo
+       << " " <<std:: setw(2) << std::right << dd
        << std::setfill(oldfill)
        << " " << hs;
   }
 
-  ostream& operator<<(ostream& os, const UT& rhs) {
+  std::ostream& operator<<(std::ostream& os, const UT& rhs) {
     rhs.writeYMD(os);
     return os;
   }
-  istream& operator>>(istream& is, UT& rhs) {
+  std::istream& operator>>(std::istream& is, UT& rhs) {
     rhs.read(is);
     return is;
   }
@@ -313,7 +312,7 @@ namespace astrometry {
   // year mo dd.dddd  (decimal place on date is required)
   // year mo dd hh:mm:ss.sss (time spec must be present but can be truncated).
   void
-  UT::read(istream& is) {
+  UT::read(std::istream& is) {
     double jd1;
     string buff;
     ymdValid = false;
@@ -469,7 +468,7 @@ namespace astrometry {
   ////////////////////////////////////////////////////////////////
   void
   CartesianCoords::write(std::ostream& os) const {
-    os << fixed << setprecision(9) << x[0]
+    os << std::fixed << std::setprecision(9) << x[0]
        << " " << x[1]
        << " " << x[2];
   }
@@ -963,7 +962,7 @@ namespace astrometry {
   void
   Orientation::write(std::ostream& os) const {
     os << pole << " "
-       << fixed << setprecision(8) << getPA()/DEGREE;
+       << std::fixed << std::setprecision(8) << getPA()/DEGREE;
   }
 
   void
@@ -984,8 +983,8 @@ namespace astrometry {
 
   void
   ReferenceFrame::write(std::ostream& os) const {
-    os << orient << endl;
-    os << fixed << std::setprecision(8)
+    os << orient << std::endl;
+    os << std::fixed << std::setprecision(8)
        << origin[0] << " " << origin[1] << " " << origin[2];
   }
   void

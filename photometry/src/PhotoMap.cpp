@@ -161,10 +161,10 @@ PolyMap::create(const YAML::Node& node, string name) {
   if (!node.IsMap() || 
       !node["Type"] || node["Type"].as<string>() != type() ||
       !node["UsePixelCoords"] || !node["Poly"]) {
-    cerr << (node["Type"].as<string>() != type())
+      std::cerr << (node["Type"].as<string>() != type())
 	 << " " << !node["UsePixelCoords"]
 	 << " " << !node["Poly"]
-	 << endl;
+     << std::endl;
     throw PhotometryError("PolyMap::create() is missing YAML keys for name " + name);
   }
   ArgumentType argType = node["UsePixelCoords"].as<bool>() ? Device : Exposure;

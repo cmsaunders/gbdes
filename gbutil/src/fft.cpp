@@ -3,7 +3,7 @@
 
 #include "fft.h"
 #include <limits>
-
+#include <deque>
 using namespace fft;
 
 #ifndef PI
@@ -33,7 +33,6 @@ KTable::KTable(int _N,
   dk = _dk;
   get_array(value);
   scaleby=1.;
-  return;
 }
 
 
@@ -68,8 +67,7 @@ KTable::kSet(int ix, int iy, DComplex value) {
     array[index(ix,iy)]=value/scaleby;
     if (ix==0 || ix==N/2) array[index(ix,-iy)]=conj(value)/scaleby;
   }
-  return;
-}
+  }
 
 void
 KTable::get_array(const DComplex value) {
@@ -79,23 +77,21 @@ KTable::get_array(const DComplex value) {
   }
   for (int i=0; i<N*(N/2+1); i++)
     array[i]=value;
-  return;
 }
 
 void
 KTable::copy_array(const KTable& rhs) {
   cache.clear();	// invalidate any stored interpolations
-  if (rhs.array==0) 
+  if (rhs.array==nullptr)
     throw FFTError("KTable::copy_array from null array");
-  if (array!=0 && N!=rhs.N) kill_array();
+  if (array!=nullptr && N!=rhs.N) kill_array();
   N = rhs.N; // makes sure our array will be of same size
 #pragma omp critical (fftw)
   {
-    if (array==0) array = (DComplex*) fftw_malloc(sizeof(DComplex)*N*(N/2+1)); // allocate space
+    if (array==nullptr) array = (DComplex*) fftw_malloc(sizeof(DComplex)*N*(N/2+1)); // allocate space
   }
   for (int i=0; i<N*(N/2+1); i++) // copy element by element
     array[i]=rhs.array[i];
-  return;
 }
 
 void
@@ -105,7 +101,6 @@ KTable::clear() {
   for (int i=0; i<N*(N/2+1); i++)
     array[i]=DComplex(0.,0.);
   scaleby = 1.;
-  return;
 }
 
 void
@@ -116,8 +111,7 @@ KTable::kill_array() {
   {
     fftw_free(array);
   }
-  array=0;
-  return;
+  array=nullptr;
 }
 
 void
@@ -129,7 +123,6 @@ KTable::accumulate(const KTable& rhs, double scalar) {
   if (dk != rhs.dk) throw FFTError("KTable::accumulate() with mismatched dk");
   for (int i=0; i<N*(N/2+1); i++)
     array[i]+=scalar * rhs.array[i];
-  return;
 }
 
 void
@@ -141,7 +134,6 @@ KTable::operator*=(const KTable& rhs) {
   scaleby *= rhs.scaleby;
   for (int i=0; i<N*(N/2+1); i++)
     array[i]*=rhs.array[i];
-  return;
 }
 
 KTable*
@@ -304,7 +296,7 @@ KTable::interpolate(double kx, double ky, const Interpolant2d& interp) const {
 
     // cache always holds sequential y values (with wrap).  Throw away
     // elements until we get to the one we need first
-    deque<DComplex>::iterator nextSaved = cache.begin();
+    std::deque<DComplex>::iterator nextSaved = cache.begin();
     while (nextSaved != cache.end() && cacheStartY != iyMin) {
       cache.pop_front();
       cacheStartY++;
@@ -642,7 +634,6 @@ XTable::xSet(int ix, int iy, double value) {
   check_array();
   cache.clear();	// invalidate any stored interpolations
   array[index(ix,iy)]=value/scaleby;
-  return;
 }
 
 void
@@ -653,7 +644,6 @@ XTable::get_array(const double value) {
   }
   for (int i=0; i<N*N; i++)
     array[i]=value;
-  return;
 }
 
 void
@@ -668,7 +658,6 @@ XTable::copy_array(const XTable& rhs) {
   }
   for (int i=0; i<N*N; i++)
     array[i]=rhs.array[i];
-  return;
 }
 
 void
@@ -680,7 +669,6 @@ XTable::kill_array() {
     fftw_free(array);
   }
   array=0;
-  return;
 }
 
 void
@@ -690,7 +678,6 @@ XTable::clear() {
   for (int i=0; i<N*N; i++)
     array[i]=0.;
   scaleby = 1.;
-  return;
 }
 
 void
@@ -701,7 +688,6 @@ XTable::accumulate(const XTable& rhs, double scalar) {
   if (N != rhs.N) throw FFTError("XTable::accumulate() with mismatched sizes");
   for (int i=0; i<N*N; i++)
     array[i] +=scalar * rhs.array[i];
-  return;
 }
 
 // Interpolate table (linearly) to some specific k:
@@ -715,7 +701,7 @@ XTable::interpolate(double x, double y, const Interpolant2d& interp) const {
   y /= dx;
   int ixMin, ixMax, iyMin, iyMax;
   if ( interp.isExactAtNodes() 
-       && abs(x - floor(x+0.01)) < 10.*std::numeric_limits<double>::epsilon()) {
+       && std::abs(x - floor(x+0.01)) < 10.*std::numeric_limits<double>::epsilon()) {
     // x coord lies right on integer value, no interpolation in x direction
     ixMin = ixMax = static_cast<int> (floor(x+0.01));
   } else {
@@ -775,7 +761,7 @@ XTable::interpolate(double x, double y, const Interpolant2d& interp) const {
 
     // cache always holds sequential y values (no wrap).  Throw away
     // elements until we get to the one we need first
-    deque<double>::iterator nextSaved = cache.begin();
+    std::deque<double>::iterator nextSaved = cache.begin();
     while (nextSaved != cache.end() && cacheStartY != iyMin) {
       cache.pop_front();
       cacheStartY++;
@@ -919,7 +905,7 @@ KTable::fftwMeasure() const {
 				reinterpret_cast<fftw_complex*> (t_array), xt->array,
 				FFTW_MEASURE);
   }
-  if (plan==NULL) throw FFTInvalid();
+  if (plan==nullptr) throw FFTInvalid();
   delete xt;
 #pragma omp critical (fftw)
   {
@@ -959,7 +945,7 @@ KTable::transform() const {
 				reinterpret_cast<fftw_complex*> (t_array), xt->array,
 				FFTW_ESTIMATE);
   }
-  if (plan==NULL) throw FFTInvalid();
+  if (plan==nullptr) throw FFTInvalid();
 
   // Run the transform:
   fftw_execute(plan);
@@ -1004,7 +990,7 @@ KTable::transform(XTable& xt) const {
 				reinterpret_cast<fftw_complex*> (t_array), xt.array,
 				FFTW_ESTIMATE);
   }
-  if (plan==NULL) throw FFTInvalid();
+  if (plan==nullptr) throw FFTInvalid();
 
   // Run the transform:
   fftw_execute(plan);
@@ -1040,7 +1026,7 @@ XTable::fftwMeasure() const {
 				t_array, reinterpret_cast<fftw_complex*> (kt->array),
 				FFTW_MEASURE);
   }
-  if (plan==NULL) throw FFTInvalid();
+  if (plan==nullptr) throw FFTInvalid();
 
   delete kt;
 #pragma omp critical (fftw)
@@ -1064,7 +1050,7 @@ XTable::transform() const {
 				  array, reinterpret_cast<fftw_complex*> (kt->array),
 				  FFTW_ESTIMATE);
     }
-  if (plan==NULL) throw FFTInvalid();
+  if (plan==nullptr) throw FFTInvalid();
   fftw_execute(plan);
 #pragma omp critical (fftw)
     {

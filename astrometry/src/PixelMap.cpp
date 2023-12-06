@@ -185,7 +185,7 @@ ReprojectionMap::create(const YAML::Node& node,
       !node["ScaleFactor"] )
     throw AstrometryError("ReprojectionMap::create() is missing YAML keys for name " + name);
 
-  vector<SphericalCoords*> coords(2);  // Will read input and output projections
+  std::vector<SphericalCoords*> coords(2);  // Will read input and output projections
   coords[0] = SphericalCoords::deserialize(node["InProjection"]);
   coords[1] = SphericalCoords::deserialize(node["OutProjection"]);
   double scale = node["ScaleFactor"].as<double>();
@@ -338,7 +338,7 @@ ConstantMap::create(const YAML::Node& node,
     throw AstrometryError("ConstantMap has missing <Type> fields at YAML node " + name);
 
   if (node["Parameters"]) {
-    vector<double> vv = node["Parameters"].as<vector<double> >();
+    std::vector<double> vv = node["Parameters"].as<std::vector<double> >();
     if (vv.size()!=2)
       throw AstrometryError("ConstantMap has wrong # of parameters at YAML node " + name);
     defaulted = false;

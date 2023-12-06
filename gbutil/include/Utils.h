@@ -4,19 +4,9 @@
 //---------------------------------------------------------------------------
 
 // Things to include in every program
-
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <cstdlib>
-#include <cmath>
+#include <cstdint>
 #include <complex>
-#include <exception>
-#include <stdexcept>
-
-using namespace std;
+#include <iostream>
 
 //************** Useful templates:
 template <class T>
@@ -71,7 +61,7 @@ quit(const std::exception& s, const int exit_code=1) throw () {
 #ifdef DEBUGLOGGING
   dbg << s.what() << endl;
 #endif
-  cerr << s.what() << endl;
+  std::cerr << s.what() << std::endl;
   exit(exit_code);
 }
 
@@ -83,7 +73,7 @@ public:
   FormatAndThrow& operator<<(const T& t) {oss << t; return *this;}
   ~FormatAndThrow() noexcept(false) {throw E(oss.str());}
 private:
-  ostringstream oss;
+  std::ostringstream oss;
 };
 
 #endif

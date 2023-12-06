@@ -18,7 +18,7 @@ namespace astrometry {
     // of the SphericalCoords object.  SphericalCoords now gives location on the sky.
     // For shareMap=false, a duplicate of the input map is owned by this class and deleted
     // in destructor.  For shareMap=true, uses the input pointer but does not delete it.
-    Wcs(PixelMap* pm_, const SphericalCoords& nativeCoords_, string name="", 
+    Wcs(PixelMap* pm_, const SphericalCoords& nativeCoords_, std::string name="",
 	double wScale_=DEGREE, bool shareMap_=false);
     virtual ~Wcs();
     virtual Wcs* duplicate() const;  // Note that duplicate has same sharing behavior as this.
@@ -37,8 +37,8 @@ namespace astrometry {
     void useNativeProjection();
 
     // Now we implement the PixelMap interface:
-    static string type() {return "WCS";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "WCS";}
+    virtual std::string getType() const {return type();}
 
     // Serialization is here for convenience, since PixelMapCollection will
     // handle serialization most of the time.  This does NOT serialize

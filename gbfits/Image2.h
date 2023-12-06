@@ -4,7 +4,6 @@
 #define IMAGE2_H
 
 namespace img {
-  using namespace std;
 
   class ImageError;
   class ImageBounds;
@@ -119,7 +118,7 @@ namespace img {
     //list of subimages of this (sub)image:
     bool isAltered;
     bool lock;
-    mutable list<ImageData<T>*> children;	
+    mutable std::list<ImageData<T>*> children;
 
     // Does this object own (i.e. have responsibility for destroying):
     bool  ownDataArray;	// the actual data array

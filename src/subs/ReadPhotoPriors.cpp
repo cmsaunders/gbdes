@@ -33,7 +33,7 @@ zero for the specified exposures.
 #include <fstream>
 #include <sstream>
 
-#include "Std.h"
+#include "Utils.h"
 #include "StringStuff.h"
 #include "PixelMapCollection.h"
 #include "PhotoMatch.h"
@@ -41,22 +41,21 @@ zero for the specified exposures.
 #include "FitSubroutines.h"
 #include "yaml-cpp/yaml.h"
 
-using namespace std;
 using namespace stringstuff;
 using namespace photometry;
 
 void formatError(string filename, string line) {
-    cerr << "Format error reading prior file " << filename << " on input line:" << endl;
-    cerr << line << endl;
+    std::cerr << "Format error reading prior file " << filename << " on input line:" << std::endl;
+    std::cerr << line << std::endl;
     exit(1);
 }
 
-list<PhotoPrior *> readPriors(string filename, const vector<unique_ptr<Instrument>> &instruments,
-                              const vector<unique_ptr<Exposure>> &exposures,
-                              const vector<unique_ptr<Photo::Extension>> &extensions) {
-    ifstream ifs(filename.c_str());
+list<PhotoPrior *> readPriors(string filename, const std::vector<std::unique_ptr<Instrument>> &instruments,
+                              const std::vector<std::unique_ptr<Exposure>> &exposures,
+                              const std::vector<std::unique_ptr<Photo::Extension>> &extensions) {
+    std::ifstream ifs(filename.c_str());
     if (!ifs) {
-        cerr << "Could not open photometric priors file " << filename << endl;
+        std::cerr << "Could not open photometric priors file " << filename << std::endl;
         exit(1);
     }
 
@@ -140,10 +139,10 @@ list<PhotoPrior *> readPriors(string filename, const vector<unique_ptr<Instrumen
             list<PhotoPriorReferencePoint> refs;
 
             // Now look for all exposures that match the request here.
-            vector<int> matchingExposures;
-            vector<int> matchingDevices;
-            vector<double> matchingXPix;
-            vector<double> matchingYPix;
+            std::vector<int> matchingExposures;
+            std::vector<int> matchingDevices;
+            std::vector<double> matchingXPix;
+            std::vector<double> matchingYPix;
             for (int iExpo = 0; iExpo < exposures.size(); iExpo++) {
                 if (!exposures[iExpo]) continue;
                 if (regexMatchAny(exposureRegexes, exposures[iExpo]->name)) {
@@ -183,8 +182,8 @@ list<PhotoPrior *> readPriors(string filename, const vector<unique_ptr<Instrumen
                         // Check for airmass if needed
                         point.airmass = extn.airmass;
                         if ((airmassIsFree || airmassCoeff != 0.) && point.airmass < 1.) {
-                            cerr << "Prior " << priorName << " uses airmass but airmass<1 at exposure "
-                                 << point.exposureName << " device " << point.deviceName << endl;
+                            std::cerr << "Prior " << priorName << " uses airmass but airmass<1 at exposure "
+                                 << point.exposureName << " device " << point.deviceName << std::endl;
                             exit(1);
                         }
                         point.apcorr = extn.apcorr;
@@ -217,7 +216,7 @@ list<PhotoPrior *> readPriors(string filename, const vector<unique_ptr<Instrumen
 
             // Warn if no exposures found
             if (refs.empty()) {
-                cerr << "WARNING: No fitted catalogs found for prior " << priorName << endl;
+                std::cerr << "WARNING: No fitted catalogs found for prior " << priorName << std::endl;
             } else {
                 out.push_back(new PhotoPrior(refs, sigma, priorName, zeropoint, airmassCoeff, colorCoeff,
                                              apcorrCoeff, zpIsFree, airmassIsFree, colorIsFree,
@@ -225,7 +224,7 @@ list<PhotoPrior *> readPriors(string filename, const vector<unique_ptr<Instrumen
             }
         }  // End loop of YAML prior nodes
     } catch (YAML::Exception &e) {
-        cerr << "YAML error during ReadPhotoPrior" << endl;
+        std::cerr << "YAML error during ReadPhotoPrior" << std::endl;
         throw;
     }
     return out;

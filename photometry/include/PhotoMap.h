@@ -16,7 +16,7 @@
 #include <string>
 #include <list>
 #include <iostream>
-#include "Std.h"
+#include "Utils.h"
 #include "LinearAlgebra.h"
 #include "Poly2d.h"
 #include "Bounds.h"
@@ -30,7 +30,7 @@ namespace photometry {
   
   class PhotometryError: public std::runtime_error {
   public:
-    PhotometryError(const string &m=""): 
+    PhotometryError(const std::string &m=""):
       std::runtime_error("Photometry Error: " +m) {}
   };
 
@@ -48,8 +48,8 @@ namespace photometry {
 
   class PhotoMap {
   public:
-    PhotoMap(string name_="");
-    virtual ~PhotoMap() {}
+    PhotoMap(std::string name_="");
+    virtual ~PhotoMap() = default;
     // Return pointer to deep copy of self
     virtual PhotoMap* duplicate() const =0;
 
@@ -82,8 +82,8 @@ namespace photometry {
     // For serialization:
     static const int DEFAULT_PRECISION=8;
     virtual void write(YAML::Emitter& os) const =0;
-    string getName() const {return name;}
-    virtual string getType() const {return "None";}
+    std::string getName() const {return name;}
+    virtual std::string getType() const {return "None";}
   protected:
     // This can be used by derived classes to do inversion if they are nonlinear in magnitude:
     // Notice 1 mmag default tolerance.
@@ -92,7 +92,7 @@ namespace photometry {
 		       const PhotoArguments& args,
 		       double magTolerance=0.001) const;
   private:
-    string name;
+    std::string name;
     static int anonymousCounter;
   };
 
@@ -100,13 +100,13 @@ namespace photometry {
 
   class IdentityMap: public PhotoMap {
   public:
-    IdentityMap(string name_="Identity"): PhotoMap(name_) {}
+    IdentityMap(std::string name_="Identity"): PhotoMap(name_) {}
     virtual PhotoMap* duplicate() const {return new IdentityMap();}
-    static string type() {return "Identity";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Identity";}
+    virtual std::string getType() const {return type();}
     virtual double forward(double magIn, const PhotoArguments& args) const {return magIn;}
 
-    static PhotoMap* create(const YAML::Node& node, string name_="") {
+    static PhotoMap* create(const YAML::Node& node, std::string name_="") {
       return name_.empty() ? new IdentityMap() : new IdentityMap(name_);}
     virtual void write(YAML::Emitter& os) const {
       os << YAML::BeginMap << YAML::Key << "Type" << YAML::Value << type()
@@ -117,10 +117,10 @@ namespace photometry {
   // Map that shifts magnitudes by a scalar.  Scalar is a free parameter.
   class ConstantMap: public PhotoMap {
   public:
-    ConstantMap(double c_=0., string name=""): PhotoMap(name), c(c_) {}
+    ConstantMap(double c_=0., std::string name=""): PhotoMap(name), c(c_) {}
     virtual PhotoMap* duplicate() const {return new ConstantMap(*this);}
-    static string type() {return "Constant";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Constant";}
+    virtual std::string getType() const {return type();}
     virtual double forward(double magIn, const PhotoArguments& args) const {return magIn+c;}
     virtual double inverse(double magOut, const PhotoArguments& args) const {return magOut-c;}
     virtual double forwardDerivs(double magIn, const PhotoArguments& args,
@@ -135,7 +135,7 @@ namespace photometry {
       Assert(p.size()==1);
       c = p[0];
     }
-    static PhotoMap* create(const YAML::Node& node, string name_="");
+    static PhotoMap* create(const YAML::Node& node, std::string name_="");
     virtual void write(YAML::Emitter& os) const;
   private:
     double c;
@@ -147,7 +147,7 @@ namespace photometry {
   // The ColorTerm will assume ownership of the PhotoMap that it wraps and will delete it.  
   class ColorTerm: public PhotoMap {
   public:
-    ColorTerm(PhotoMap* pm_, double referenceColor=0., string name=""):
+    ColorTerm(PhotoMap* pm_, double referenceColor=0., std::string name=""):
       PhotoMap(name),
       pm(pm_),
       reference(referenceColor) {
@@ -161,8 +161,8 @@ namespace photometry {
     virtual PhotoMap* duplicate() const {return new ColorTerm(pm->duplicate(),
 							      reference,
 							      getName());}
-    static string type() {return "Color";}
-    virtual string getType() const {return type();}
+    static std::string type() {return "Color";}
+    virtual std::string getType() const {return type();}
     virtual bool needsColor() const {return true;}
 
     double forward(double magIn, const PhotoArguments& args) const {
@@ -203,17 +203,17 @@ namespace photometry {
   public:
     PolyMap(const poly2d::Poly2d& p,
 	    ArgumentType argType,
-	    string name="",
+	    std::string name="",
 	    Bounds<double> domain=Bounds<double>(-1.,1.,-1.,1.));
     // Constructor with 1 order has terms with sum of x and y powers up to this order.
     // Constructor with 2 orders has all terms w/ powers of x up to orderx, y to ordery
     PolyMap(int orderx, int ordery,
 	    ArgumentType argType,
-	    string name="",
+	    std::string name="",
 	    Bounds<double> domain=Bounds<double>(-1.,1.,-1.,1.));
     PolyMap(int order, 
 	    ArgumentType argType,
-	    string name="",
+	    std::string name="",
 	    Bounds<double> domain=Bounds<double>(-1.,1.,-1.,1.));
     virtual PhotoMap* duplicate() const {return new PolyMap(*this);}
       
@@ -236,9 +236,9 @@ namespace photometry {
     // Return rectangular bounds that rescale to (-1,1)
     Bounds<double> getDomain() const;
 
-    static string type() {return "Poly";}
-    virtual string getType() const {return type();}
-    static PhotoMap* create(const YAML::Node& node, string name="");
+    static std::string type() {return "Poly";}
+    virtual std::string getType() const {return type();}
+    static PhotoMap* create(const YAML::Node& node, std::string name="");
     void write(YAML::Emitter& os) const;
   private:
     poly2d::Poly2d poly;

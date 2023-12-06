@@ -31,7 +31,7 @@
 
 #include <stdexcept>
 #include <deque>
-#include "Std.h"
+#include "Utils.h"
 #include "fftw3.h"
 #include "Interpolant.h"
 
@@ -39,19 +39,19 @@ namespace fft {
 // Class for errors
 class FFTError: public std::runtime_error {
  public:
- FFTError(const string &m=""): std::runtime_error("FFT error: " + m) {}
+ explicit FFTError(const std::string &m=""): std::runtime_error("FFT error: " + m) {}
 };
 class FFTOutofRange: public FFTError {
  public:
-  FFTOutofRange(const string &m="value out of range"): FFTError(m) {}
+  explicit FFTOutofRange(const std::string &m="value out of range"): FFTError(m) {}
 };
 class FFTMalloc: public FFTError {
  public:
-  FFTMalloc(const string &m="malloc failure"): FFTError(m) {}
+  explicit FFTMalloc(const std::string &m="malloc failure"): FFTError(m) {}
 };
 class FFTInvalid: public FFTError {
  public:
-  FFTInvalid(const string &m="invalid plan or data"): FFTError(m) {}
+  explicit FFTInvalid(const std::string &m="invalid plan or data"): FFTError(m) {}
 };
 
   // A helper function that will return the smallest 2^n or 3x2^n value that is
@@ -72,10 +72,10 @@ class KTable {
   friend class XTable; 
  public:
   KTable(int _N, double _dk, DComplex _value=DComplex(0.,0.));
-  KTable(const KTable& rhs): array(0), N(rhs.N), dk(rhs.dk), scaleby(rhs.scaleby) {
+  KTable(const KTable& rhs): array(nullptr), N(rhs.N), dk(rhs.dk), scaleby(rhs.scaleby) {
     copy_array(rhs);};
-  KTable(): array(0), N(0), dk(0), scaleby(0) { }; // dummy constructor
-  virtual KTable& operator=(const KTable& rhs) {
+  KTable(): array(nullptr), N(0), dk(0), scaleby(0) { }; // dummy constructor
+  KTable& operator=(const KTable& rhs) {
     if (&rhs==this) return *this;
     copy_array(rhs);
     N=rhs.N; dk=rhs.dk; scaleby=rhs.scaleby;
@@ -130,7 +130,7 @@ class KTable {
   DComplex integratePixels() const;
 
  private:
-  DComplex *array;
+  DComplex *array{};
   double  dk;			//k-space increment
   int     N;			//Size in each dimension.
   double  scaleby;	//multiply table by this to get values
@@ -138,15 +138,15 @@ class KTable {
   // this is also responsible for bounds checking.
 
   void copy_array(const KTable &rhs);	//copy an array
-  void get_array(const DComplex value=DComplex(0.,0.));	//allocate an array  
+  void get_array(DComplex value=DComplex(0.,0.));	//allocate an array
   void kill_array();			//deallocate array
   void check_array() const {if (!array) throw FFTError("KTable operation on null array");}
 
   // Objects used to accelerate interpolation with seperable interpolants:
-  mutable deque<DComplex> cache;
-  mutable int cacheStartY;
-  mutable double cacheX;
-  mutable const InterpolantXY* cacheInterp;
+  mutable std::deque<DComplex> cache;
+  mutable int cacheStartY{};
+  mutable double cacheX{};
+  mutable const InterpolantXY* cacheInterp{};
 };
 
 // The x-space lookup table is a simple real matrix.  Force N even again,
@@ -155,7 +155,7 @@ class XTable {
   friend class KTable;
  public:
   XTable(int _N, double _dx, double _value=0.);
-  XTable(const XTable& rhs) : array(0), N(rhs.N), dx(rhs.dx), scaleby(rhs.scaleby) {
+  XTable(const XTable& rhs) : array(nullptr), N(rhs.N), dx(rhs.dx), scaleby(rhs.scaleby) {
     copy_array(rhs);
   };
   XTable& operator=(const XTable& rhs) {
@@ -212,13 +212,13 @@ class XTable {
   size_t  index(int ix, int iy) const;	//Return index into data array.
   // this is also responsible for bounds checking.
 
-  void get_array(const double value);	//allocate an array
+  void get_array(double value);	//allocate an array
   void copy_array(const XTable &rhs);	//copy an array
   void kill_array();			//deallocate array
   void check_array() const {if (!array) throw FFTError("KTable operation on null array");}
 
   // Objects used to accelerate interpolation with seperable interpolants:
-  mutable deque<double> cache;
+  mutable std::deque<double> cache;
   mutable double cacheX;
   mutable int cacheStartY;
   mutable const InterpolantXY* cacheInterp;
@@ -246,8 +246,7 @@ KTable::fill( const T& f) {
       *(zptr++) = f(kx,ky);
     }
   }
-  return;
-}
+  }
 
 } // namespace fft
 

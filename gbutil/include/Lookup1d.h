@@ -27,7 +27,7 @@
 #include <map>
 #include <iostream>
 #include <vector>
-#include "Std.h"
+#include "Utils.h"
 
 #ifdef USE_YAML  // We won't be able to construct any instance of this without YAML
 #include "yaml-cpp/yaml.h"
@@ -70,16 +70,16 @@ namespace lookup {
     
     // Cache management routines:  first, get all tables from some file.
     // Seperate named caches can be kept.
-    static void ingestFile(const string& filename, const string& cachename="default");
+    static void ingestFile(const std::string& filename, const std::string& cachename="default");
 
     // If an environment variable matching this path is defined, it will
     // be used as colon-separated list of paths in which to search for table files.
-    static string CAL_PATH;
+    static std::string CAL_PATH;
 
     // Request pointer to named Lookup1d.  If it does not exist in cache, return 0
-    static const Lookup1d* find(const string& tablename, const string& cachename="default");
+    static const Lookup1d* find(const std::string& tablename, const std::string& cachename="default");
     
-    typedef std::map<string, const Lookup1d*> Cache;
+    typedef std::map<std::string, const Lookup1d*> Cache;
 
   private:
 #ifdef USE_YAML
@@ -92,17 +92,17 @@ namespace lookup {
     Coordinate axis;
     double argStart;
     double argStep;
-    vector<double> v;
-    vector<double> dvda;
+    std::vector<double> v;
+    std::vector<double> dvda;
     // For radial functions, define center:
     double xCenter;
     double yCenter;
     
 
     // The caches
-    static std::map<string, Cache> caches;
+    static std::map<std::string, Cache> caches;
     // Names of files already ingested
-    static std::map<string,std::set<string> > cachedFilenames;
+    static std::map<std::string,std::set<std::string> > cachedFilenames;
   };
 
 } // end namespace lookup

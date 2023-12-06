@@ -23,11 +23,11 @@ namespace FITS {
 	      FITS::Flags f,
 	      string hduName);
     // Close on destruction
-    virtual ~FitsTable();
+    ~FitsTable() override;
 
     // Write any changes in memory version (mirror) back to FITS file
     // [happens automatically on object destruction]
-    virtual void flush() const {}
+    void flush() const override {}
     virtual void flush() {if (isWriteable()) {flushData(); Hdu::flush();}}
     virtual bool isChanged() const {return Hdu::isChanged() || (dptr && dptr->isChanged());}
     // Empty the FITS table and header:
@@ -88,12 +88,12 @@ namespace FITS {
     // Create new column(s) in TableData to hold data in 
     // FitsTable's column with given names and no's
     void createColumns(img::TableData* tptr, 
-		       const vector<string>& names,
-		       const vector<int>& numbers) const;
+		       const std::vector<string>& names,
+		       const std::vector<int>& numbers) const;
     // Read data from FITS table file into the FTable, columns with specified names/numbers.
     void readFitsData(img::TableData* tptr, 
-		      const vector<string>& names,
-		      const vector<int>& numbers,
+		      const std::vector<string>& names,
+		      const std::vector<int>& numbers,
 		      long rowStart,
 		      long rowEnd) const;
     // Template function used in above to read data for a single column
@@ -104,7 +104,7 @@ namespace FITS {
     // For writing FTable to FITS
     // Add all of TableData's columns to end of FITS table, and accumulate name/number pairs
     void addFitsColumns(const img::TableData* tptr, 
-			vector<string>& colNames, vector<int>& colNums);
+			std::vector<string>& colNames, std::vector<int>& colNums);
     // Write data from FTable data to FITS file, for requested row range
     template <class DT>
     void writeFitsColumn(const img::TableData* tptr, string colName, int colNums,

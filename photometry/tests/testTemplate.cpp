@@ -2,10 +2,10 @@
 
 #include <iostream>
 #include "PhotoTemplate.h"
-#include "Std.h"
+#include "Utils.h"
 #include "yaml-cpp/yaml.h"
 using namespace photometry;
-using namespace std;
+
 
 int
 main(int argc, char *argv[])

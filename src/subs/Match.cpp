@@ -2,9 +2,7 @@
 
 #include "Match.h"
 #include <list>
-using std::list;
 #include <set>
-using std::set;
 #include "StringStuff.h"
 #include <fstream>
 #include "AstronomicalConstants.h"
@@ -99,7 +97,7 @@ Vector2 Detection::residPix() const {
     } catch (astrometry::AstrometryError &e) {
         std::cerr << "WARNING: toPix failure in map " << map->getName() << " at world coordinates ("
                   << xyMean[0] << "," << xyMean[1] << ")"
-                  << " approx pixel coordinates (" << xpix << "," << ypix << ")" << endl;
+                  << " approx pixel coordinates (" << xpix << "," << ypix << ")" << std::endl;
         // Just return zero residual
         return Vector2(0.);
     }
@@ -134,7 +132,7 @@ Vector2 PMDetection::residPix() const {
     } catch (astrometry::AstrometryError &e) {
         std::cerr << "WARNING: toPix failure in map " << map->getName() << " at world coordinates ("
                   << pmFit[0] << "," << pmFit[1] << ")"
-                  << " approx pixel coordinates (" << xpix << "," << ypix << ")" << endl;
+                  << " approx pixel coordinates (" << xpix << "," << ypix << ")" << std::endl;
         // Just return zero residual
         return Vector2(0.);
     }
@@ -175,7 +173,7 @@ bool Match::isFit(const Detection &e) {
     return e.fitWeight > 0.;
 }
 
-Match::Match(unique_ptr<Detection> e)
+Match::Match(std::unique_ptr<Detection> e)
         : elist(),
           nFit(0),
           dof(0),
@@ -188,7 +186,7 @@ Match::Match(unique_ptr<Detection> e)
     add(std::move(e));
 }
 
-void Match::add(unique_ptr<Detection> e) {
+void Match::add(std::unique_ptr<Detection> e) {
     isPrepared = false;
     e->itsMatch = this;
     e->isClipped = false;
@@ -201,11 +199,11 @@ void Match::add(unique_ptr<Detection> e) {
 void Match::remove(Detection const &e) {
     isPrepared = false;
     isSolved = false;
-    elist.remove_if([&e](unique_ptr<Detection> const &d) { return &e == d.get(); });
+    elist.remove_if([&e](std::unique_ptr<Detection> const &d) { return &e == d.get(); });
     // no need to unset itsMatch, because the Detection has been deleted.
 }
 
-list<unique_ptr<Detection>>::iterator Match::erase(list<unique_ptr<Detection>>::iterator i) {
+std::list<std::unique_ptr<Detection>>::iterator Match::erase(std::list<std::unique_ptr<Detection>>::iterator i) {
     isPrepared = false;
     isSolved = false;
     return elist.erase(i);
@@ -342,7 +340,7 @@ void Match::remap(bool doAll) const {
         if (isFit(*i)) {
             if (!isMappedFit) {
                 /**/ if (!i->map)
-                    std::cerr << "Missing map at " << i->catalogNumber << endl;
+                    std::cerr << "Missing map at " << i->catalogNumber << std::endl;
                 i->map->toWorld(i->xpix, i->ypix, i->xw, i->yw, i->color);
                 isSolved = false;  // Solution has changed
             }
@@ -376,7 +374,7 @@ int Match::accumulateChisq(double &chisq, DVector &beta, SymmetricUpdater &updat
     if (dof <= 0) return 0;
 
     // Update mapping and save derivatives for each detection:
-    vector<DMatrix *> dXYdP(elist.size(), nullptr);
+    std::vector<DMatrix *> dXYdP(elist.size(), nullptr);
     int ipt = 0;
     for (auto i = elist.begin(); i != elist.end(); ++i, ++ipt) {
         if (!isFit(**i)) continue;
@@ -399,7 +397,7 @@ int Match::accumulateChisq(double &chisq, DVector &beta, SymmetricUpdater &updat
     DMatrix dxyMean(2, nP, 0.);
     Matrix22 invCovW;  // inverse covariance * weight
     Vector2 err;
-    map<int, iRange> mapsTouched;
+    std::map<int, iRange> mapsTouched;
     ipt = 0;
     for (auto i = elist.begin(); i != elist.end(); ++i, ++ipt) {
         if (!isFit(**i)) continue;
@@ -560,7 +558,7 @@ double Match::chisq(int &dofAccum, double &maxDeviateSq, bool dump) const {
 
 const double PM_PRIOR = 100. * RESIDUAL_UNIT / WCS_UNIT; /**/
 
-PMMatch::PMMatch(unique_ptr<Detection> e) : Match(std::move(e)), pm(0.) {}
+PMMatch::PMMatch(std::unique_ptr<Detection> e) : Match(std::move(e)), pm(0.) {}
 
 void PMMatch::prepare() const {
     if (isPrepared) return;
@@ -873,7 +871,7 @@ int PMMatch::accumulateChisq(double &chisq, DVector &beta, SymmetricUpdater &upd
 
     // First loop updates mapping and accumulates derivs.
     // Save derivatives here
-    vector<DMatrix *> dXYdP(elist.size(), nullptr);
+    std::vector<DMatrix *> dXYdP(elist.size(), nullptr);
 
     // And accumulate a quantity related to deriv of PM
     // /sum_i (projector_i)^T * invCov_i * dXY_i/dp
@@ -918,7 +916,7 @@ int PMMatch::accumulateChisq(double &chisq, DVector &beta, SymmetricUpdater &upd
     PMSolution pmErr;
     PMProjector cInvM;
 
-    map<int, iRange> mapsTouched;
+    std::map<int, iRange> mapsTouched;
     ipt = 0;
     for (auto i = elist.begin(); i != elist.end(); ++i, ++ipt) {
         if (!isFit(**i)) continue;
@@ -1113,7 +1111,7 @@ void CoordAlign::operator()(const DVector &p, double &chisq, DVector &beta, DMat
     // Without OPENMP, just loop through all matches:
     for (auto const &i : mlist) {
         Match *m = i.get();
-        if (matchCtr % 10000 == 0) cerr << "# accumulating chisq at match # " << matchCtr << endl;
+        if (matchCtr % 10000 == 0) std::cerr << "# accumulating chisq at match # " << matchCtr << std::endl;
         matchCtr++;
         if (m->getReserved()) continue;  // skip reserved objects
         m->accumulateChisq(newChisq, beta, updater, reuseAlpha);
@@ -1123,7 +1121,7 @@ void CoordAlign::operator()(const DVector &p, double &chisq, DVector &beta, DMat
 
     if (!reuseAlpha) {
         // Code to spot unconstrained parameters:
-        set<string> newlyFrozenMaps;
+        std::set<string> newlyFrozenMaps;
         for (int i = 0; i < alpha.rows(); i++) {
             bool blank = true;
             for (int j = 0; j < alpha.cols(); j++)
@@ -1155,15 +1153,15 @@ void CoordAlign::operator()(const DVector &p, double &chisq, DVector &beta, DMat
             // Print message about freezing parameters
             int startIndex, nParams;
             pmc.parameterIndicesOf(badAtom, startIndex, nParams);
-            cerr << "Freezing " << frozenMaps[badAtom].size() << " of " << nParams << " parameters in map "
+            std::cerr << "Freezing " << frozenMaps[badAtom].size() << " of " << nParams << " parameters in map "
                  << badAtom;
             if (frozenMaps[badAtom].size() < nParams) {
                 // Give the parameter indices
-                cerr << " (";
-                for (auto i : frozenMaps[badAtom]) cerr << i - startIndex << " ";
-                cerr << ")";
+                std::cerr << " (";
+                for (auto i : frozenMaps[badAtom]) std::cerr << i - startIndex << " ";
+                std::cerr << ")";
             }
-            cerr << endl;
+            std::cerr << std::endl;
         }
     }  // End degenerate parameter check
 }
@@ -1185,7 +1183,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
         timer.start();
         (*this)(p, oldChisq, beta, alpha);
         timer.stop();
-        if (reportToCerr) cerr << "..fitOnce alpha time " << timer << endl;
+        if (reportToCerr) std::cerr << "..fitOnce alpha time " << timer << std::endl;
         timer.reset();
         timer.start();
 
@@ -1196,7 +1194,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
         if (precondition) {
             for (int i = 0; i < N; i++) {
                 if (alpha(i, i) < 0.) {
-                    cerr << "Negative alpha diagonal " << alpha(i, i) << " at " << i << endl;
+                    std::cerr << "Negative alpha diagonal " << alpha(i, i) << " at " << i << std::endl;
                     throw std::runtime_error("Negative alpha diagonal " + std::to_string(alpha(i, i))
                                              + " at " + std::to_string(i));
                 }
@@ -1240,12 +1238,12 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
         // SVD, which is what we want anyway to find the non-pos-def values
 
         if (choleskyFails) {
-            cerr << "Caught exception during Cholesky" << endl;
+            std::cerr << "Caught exception during Cholesky" << std::endl;
             if (inPlace) {
                 throw std::runtime_error("Cannot describe degeneracies while dividing in place");
             }
             int N = alpha.cols();
-            set<int> degen;
+            std::set<int> degen;
             DMatrix U(N, N);
             DVector S(N);
 
@@ -1266,7 +1264,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
             int imin = 0;
             double smin = abs(S[imin]);
             for (int i = 0; i < U.cols(); i++) {
-                cerr << i << " Eval: " << S[i] << endl;
+                std::cerr << i << " Eval: " << S[i] << std::endl;
                 double s = abs(S[i]);
                 if (s > smax) {
                     smax = s;
@@ -1278,18 +1276,18 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
                 }
                 if (S[i] < 1e-6) degen.insert(i);
             }
-            cerr << "Largest abs(eval): " << smax << endl;
-            cerr << "Smallest abs(eval): " << smin << endl;
+            std::cerr << "Largest abs(eval): " << smax << std::endl;
+            std::cerr << "Smallest abs(eval): " << smin << std::endl;
             degen.insert(imin);
             // Find biggest contributors to non-positive (or marginal) eigenvectors
             const int ntop = MIN(N, 20);
             for (int isv : degen) {
-                cerr << "--->Eigenvector " << isv << " eigenvalue " << S(isv) << endl;
+                std::cerr << "--->Eigenvector " << isv << " eigenvalue " << S(isv) << std::endl;
                 // Find smallest abs coefficient
                 int imin = 0;
                 for (int i = 0; i < U.rows(); i++)
                     if (abs(U(i, isv)) < abs(U(imin, isv))) imin = i;
-                vector<int> top(ntop, imin);
+                std::vector<int> top(ntop, imin);
                 for (int i = 0; i < U.rows(); i++) {
                     for (int j = 0; j < ntop; j++) {
                         if (abs(U(i, isv)) >= abs(U(top[j], isv))) {
@@ -1304,8 +1302,8 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
                     string badAtom = pmc.atomHavingParameter(j);
                     int startIndex, nParams;
                     pmc.parameterIndicesOf(badAtom, startIndex, nParams);
-                    cerr << "Coefficient " << U(j, isv) << " at parameter " << j << " Map " << badAtom << " "
-                         << j - startIndex << " of " << nParams << endl;
+                    std::cerr << "Coefficient " << U(j, isv) << " at parameter " << j << " Map " << badAtom << " "
+                         << j - startIndex << " of " << nParams << std::endl;
                 }
             }
             throw std::runtime_error("Cholesky decomposition failed");
@@ -1333,7 +1331,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
             }
 
             timer.stop();
-            if (reportToCerr) cerr << "..solution time " << timer << endl;
+            if (reportToCerr) std::cerr << "..solution time " << timer << std::endl;
             timer.reset();
             timer.start();
             DVector newP = p + beta;
@@ -1344,15 +1342,15 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace) {
             double newChisq = chisqDOF(dof, maxDev);
             timer.stop();
             if (reportToCerr) {
-                cerr << "....Newton iteration #" << newtonIter << " chisq " << newChisq
-                     << " / " << dof << " in time " << timer << " sec" << endl;
+                std::cerr << "....Newton iteration #" << newtonIter << " chisq " << newChisq
+                     << " / " << dof << " in time " << timer << " sec" << std::endl;
             }
             timer.reset();
             timer.start();
 
             // Give up on Newton if chisq went up non-trivially
             if (newChisq > oldChisq * 1.0001) {
-                cerr << "chisq has gone up non-trivially" << endl;
+                std::cerr << "chisq has gone up non-trivially" << std::endl;
                 break;
             } else if ((oldChisq - newChisq) < oldChisq * relativeTolerance) {
                 // Newton has converged, so we're done.
@@ -1420,7 +1418,7 @@ int CoordAlign::sigmaClip(double sigThresh, bool doReserved, bool clipEntireMatc
         }
     }
     timer.stop();
-    if (logging) cerr << "-->Sigma clipping done in " << timer << " sec" << endl;
+    if (logging) std::cerr << "-->Sigma clipping done in " << timer << " sec" << std::endl;
     return nclip;
 }
 

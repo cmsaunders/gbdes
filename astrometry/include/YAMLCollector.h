@@ -4,7 +4,7 @@
 #define YAMLCOLLECTOR_H
 #ifdef USE_YAML // Only have this class with YAML
 
-#include "Std.h"
+#include "Utils.h"
 #include "Astrometry.h"
 #include "yaml-cpp/yaml.h"
 #include <regex>
@@ -15,7 +15,7 @@ namespace astrometry {
 
   class YAMLCollector {
   public:
-    typedef std::map<string,string> Dictionary;
+    typedef std::map<std::string,std::string> Dictionary;
 
     // Create the class with a string specifying the source files from which
     // serialized maps will be taken.  This string has the format
@@ -27,13 +27,13 @@ namespace astrometry {
     // The CAL_PATH environment variable, if present, will specify search path for
     // files.
     // The output YAML map will be initialized with a node with key=magic
-    YAMLCollector(string specs, string magic);
+    YAMLCollector(std::string specs, std::string magic);
 
     // Add input YAML, either at front or back of priority list.
     // YAML will be decoded from stream.  Only input names matching
     // the regex filter will read from this YAML (default is anything matches).
     // The prepend argument specifies whether to add to front or back of priority
-    void addInput(istream& is, string filter="", bool prepend=false);
+    void addInput(std::istream& is, std::string filter="", bool prepend=false);
 
     // Search the input YAML files' root maps for a Node matching the given name.
     // If found, return true, and add the selected Node to internal YAML structure.
@@ -47,21 +47,21 @@ namespace astrometry {
     // of the keys in the Dictionary.
     // Returns false if no match is found.
     // Adds time in non-multi-threaded parts of loop to criticalTime if it's given
-    bool addMap(string name, const Dictionary& dict=Dictionary(),
+    bool addMap(std::string name, const Dictionary& dict=Dictionary(),
 		double* criticalTime=nullptr);
 
     // Remove node of this name:
-    bool removeMap(string name);
+    bool removeMap(std::string name);
 
     // Remove all maps
     void clearMaps();
     
     // Return serialized version of all the maps that have been added.
-    string dump() const;
+    std::string dump() const;
 
     // If an environment variable matching this path is defined, it will
     // be used as colon-separated list of paths in which to search for YAML files.
-    static string CAL_PATH;
+    static std::string CAL_PATH;
 
   private:
     // Note that the yaml-cpp code seems very slow for large maps, the indexing
@@ -69,7 +69,7 @@ namespace astrometry {
     // So I am storing the nodes in a C++ std::map indexed by string (whereas YAML
     // has to accomodate any type as a key).  On output, put the nodes into one
     // big YAML map.
-    std::map<string, YAML::Node> out;
+    std::map<std::string, YAML::Node> out;
     class Replacer {
       // Class that will replace strings found in input string
       // Initialized with a Dictionary (map) where key/value are the
@@ -79,24 +79,24 @@ namespace astrometry {
       // Do all replacements in-place on src string.  Return number
       // of distinct words replaced. 
       // Quit subs when number reaches maxSubs.
-      int process(string& src, int maxSubs=99) const;
+      int process(std::string& src, int maxSubs=99) const;
     private:
-      std::list<std::pair<std::regex,string>> dict;
+      std::list<std::pair<std::regex,std::string>> dict;
     };
-    class InFile : public map<string,string> {
+    class InFile : public std::map<std::string,std::string> {
       // Class holding input from one file.  Will be a pair of strings: name,
       // and serialized content of the node.  Augment with a regex that 
     public:
       // Build the map from an input YAML file
-      InFile(istream& is, string _filter="");
+      InFile(std::istream& is, std::string _filter="");
       // Return the name that matches input name with <minSubCount replacements.
       // Returns empty string if none.
-      string findName(string name, const Replacer& reps, int& minSubCount) const;
+      std::string findName(std::string name, const Replacer& reps, int& minSubCount) const;
     private:
       std::regex filter;
     };
     std::list<InFile> inputs;
-    string magic;  // Magic key that tells type of collection
+    std::string magic;  // Magic key that tells type of collection
   };
     
 } // end namespace astrometry

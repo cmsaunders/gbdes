@@ -7,9 +7,9 @@
 
 #include <list>
 #include <set>
-using std::list;
 #include <string>
-#include "Std.h"
+#include<memory>
+#include "Utils.h"
 #include "LinearAlgebra.h"
 #include "Bounds.h"
 #include "Astrometry.h"
@@ -52,7 +52,7 @@ public:
     double xw;
     double yw;
     // For proper motion and parallax:
-    unique_ptr<PMProjector> pmProj;
+    std::unique_ptr<PMProjector> pmProj;
     const PMProjector &getProjector() const { return *pmProj; }
 
     // Inverse covariance, in world coords, for fitting.
@@ -130,7 +130,7 @@ public:
 class Match {
     // Class for a set of matched Detections, with no PM or parallax freedom
 protected:
-    list<unique_ptr<Detection>> elist;
+    std::list<std::unique_ptr<Detection>> elist;
     bool isReserved;  // Do not contribute to re-fitting if true
 
     // These flags will let a Match keep track of its internal state and
@@ -164,13 +164,13 @@ protected:
 
 public:
     EIGEN_NEW
-    Match(unique_ptr<Detection> e);
+    Match(std::unique_ptr<Detection> e);
 
     // Add and remove automatically update itsMatch of the Detection
-    void add(unique_ptr<Detection> e);
+    void add(std::unique_ptr<Detection> e);
     void remove(Detection const &e);
     // Remove a Detection from the match given an iterator to it.
-    list<unique_ptr<Detection>>::iterator erase(list<unique_ptr<Detection>>::iterator i);
+    std::list<std::unique_ptr<Detection>>::iterator erase(std::list<std::unique_ptr<Detection>>::iterator i);
     // Delete all members of match as unmatched.
     void clear();
     // True if a Detection will contribute to chisq:
@@ -242,8 +242,8 @@ public:
     // Both arguments are updated with info from this match.
     virtual double chisq(int &dofAccum, double &maxDeviateSq, bool dump = false) const;
 
-    typedef list<unique_ptr<Detection>>::iterator iterator;
-    typedef list<unique_ptr<Detection>>::const_iterator const_iterator;
+    typedef std::list<std::unique_ptr<Detection>>::iterator iterator;
+    typedef std::list<std::unique_ptr<Detection>>::const_iterator const_iterator;
     iterator begin() { return elist.begin(); }
     iterator end() { return elist.end(); }
     const_iterator begin() const { return elist.begin(); }
@@ -251,13 +251,13 @@ public:
     int size() const { return elist.size(); }
 };
 
-typedef list<unique_ptr<Match>> MCat;
+typedef std::list<std::unique_ptr<Match>> MCat;
 
 class PMMatch : public Match {
     // Class for a set of matched Detections, with free PM and parallax
 public:
     EIGEN_NEW
-    PMMatch(unique_ptr<Detection> e);
+    PMMatch(std::unique_ptr<Detection> e);
 
     // Set the prior applied to all PMMatches - given in the I/O units
     static void setPrior(double pmPrior, double parallaxPrior);
@@ -317,8 +317,8 @@ private:
     MCat &mlist;
     PixelMapCollection &pmc;
     double relativeTolerance;
-    set<int> frozenParameters;         // Keep track of degenerate parameters
-    map<string, set<int>> frozenMaps;  // Which atoms have which params frozen
+    std::set<int> frozenParameters;         // Keep track of degenerate parameters
+    std::map<std::string, std::set<int>> frozenMaps;  // Which atoms have which params frozen
 public:
     CoordAlign(PixelMapCollection &pmc_, MCat &mlist_) : mlist(mlist_), pmc(pmc_), relativeTolerance(0.001) {}
 
@@ -352,7 +352,7 @@ public:
 // Function that will execute a Marquardt-Levenberg fit to optimize the
 // parameters of some model to a simple list of detections.
 // Assigns equal uncertainty to all test points, given by sigma
-void mapFit(list<Detection *> testPoints, PixelMap *pm, double sigma = 1.);
+void mapFit(std::list<Detection *> testPoints, PixelMap *pm, double sigma = 1.);
 
 }  // namespace astrometry
 

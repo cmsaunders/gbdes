@@ -507,6 +507,21 @@ void WCSFit::fit(double maxError, int minFitExposures, double reserveFraction, i
         }
         if (verbose >= 0) std::cerr << "# Clipped " << nclip << " matches " << std::endl;
 
+        auto badExposures = findUnderpopulatedExposures<Astro>(minFitExposures, matches, exposures,
+                                                               extensions, mapCollection);
+
+        PROGRESS(2, Purging bad exposure parameters and Detections after clipping);
+        // Freeze parameters of an exposure model and clip all
+        // Detections that were going to use it.
+        for (auto i : badExposures) {
+            cout << "WARNING: Shutting down exposure map " << i.first << " with only "
+                    << i.second << " fitted detections after clipping " << std::endl;
+            freezeMap<Astro>(i.first, matches, extensions, mapCollection);
+        }
+        if (purgeOutput) {
+            PROGRESS(2, Purging unfittable maps);
+            mapCollection.purgeInvalid();
+        }
     } while (coarsePasses || nclip > 0);
 
     // If there are reserved Matches, run sigma-clipping on them now.

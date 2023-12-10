@@ -1,2 +1,5 @@
 setupRequired(astshim)
 envPrepend(PYTHONPATH, ${PRODUCT_DIR}/build/pydir)
+envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/build)
+envPrepend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/build)
+envPrepend(LSST_LIBRARY_PATH, ${PRODUCT_DIR}/build)

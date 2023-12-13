@@ -330,6 +330,9 @@ public:
     double fitOnce(bool reportToCerr = true,
                    bool inPlace = false,  // Set inPlace to save space, but can't debug singularities
                    bool doSVD = false);  
+    // Calculate the inverse of the alpha matrix, which will be the covariance
+    // of the fit parameters.
+    DMatrix calculateAlphaInv();
     // Conduct one round of sigma-clipping.  If doReserved=true,
     // then only clip reserved Matches.  If =false, then
     // only clip non-reserved Matches.

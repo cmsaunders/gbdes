@@ -1390,6 +1390,48 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace, bool calcSVD) {
     return chisq;
 }
 
+DMatrix CoordAlign::calculateAlphaInv() {
+    DVector p = getParams();
+    
+    // Get chisq, beta, alpha at starting parameters
+    double oldChisq = 0.;
+    int nP = pmc.nParams();
+    DVector beta(nP, 0.);
+    DMatrix alpha(nP, nP, 0.);
+
+    (*this)(p, oldChisq, beta, alpha, false);
+
+    // Do the Cholesky decomposition, set flag if it fails
+    bool choleskyFails = false;
+#ifdef USE_TMV
+    // Make a symmetric view into alpha for Cholesky:
+    auto symAlpha = tmv::SymMatrixViewOf(alpha, tmv::Lower);
+    symAlpha.divideUsing(tmv::CH);
+    if (inPlace) symAlpha.divideInPlace();
+    try {
+        symAlpha.setDiv();
+    } catch (tmv::Error &m) {
+        choleskyFails = true;
+    }
+#elif defined USE_EIGEN
+    typedef Eigen::LLT<Eigen::Ref<typename DMatrix::Base>, Eigen::Lower> InplaceLLT;
+    typedef Eigen::LLT<typename DMatrix::Base, Eigen::Lower> LLT;
+    InplaceLLT *inplaceLLT = nullptr;
+    LLT *llt = nullptr;
+    
+    llt = new LLT(alpha);
+    if (llt->info() == Eigen::NumericalIssue) choleskyFails = true;
+#endif
+    if (choleskyFails) {
+        throw std::runtime_error("Cholesky failed while calculating alpha^-1");
+    }
+    DMatrix identity = Eigen::MatrixXd::Identity(nP, nP);
+    DMatrix alphaInv(nP, nP, 0.);
+    alphaInv = llt->solve(identity);
+
+    return alphaInv;
+}
+
 void CoordAlign::remap(bool doAll) {
     for (auto const &i : mlist) i->remap(doAll);
 }

@@ -257,6 +257,7 @@ PYBIND11_MODULE(wcsfit, m) {
                     result["starInvCov"] = vectorToNumpy(starCat.starInvCov);
                     return result;
             })
+            .def("getModelCovariance", &WCSFit::getModelCovariance)
             .def_readonly("mapCollection", &WCSFit::mapCollection);
 
     ///////////// Friends of Friends Fitting Class //////////////////

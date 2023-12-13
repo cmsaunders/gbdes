@@ -591,3 +591,11 @@ void WCSFit::saveResults(std::string outWcs, std::string outCatalog, std::string
         Astro::saveResults(matches, outCatalog, starCatalog, extensionProjections);
     }
 }
+
+astrometry::DMatrix WCSFit::getModelCovariance() {
+
+    astrometry::CoordAlign ca(mapCollection, matches);
+    astrometry::DMatrix modelCov = ca.calculateAlphaInv();
+    return modelCov;
+
+}

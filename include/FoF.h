@@ -6,6 +6,7 @@
 #ifndef FOF_N
 #define FOF_N
 
+#include <array>
 #include <list>
 #include <set>
 #include <vector>

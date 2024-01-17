@@ -10,6 +10,7 @@ using std::set;
 #include "AstronomicalConstants.h"
 #include <algorithm>
 #include "Stopwatch.h"
+#include <iomanip>
 
 // Need Eigenvalue routines
 #ifdef USE_EIGEN
@@ -1346,8 +1347,8 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace, bool calcSVD) {
             double newChisq = chisqDOF(dof, maxDev);
             timer.stop();
             if (reportToCerr) {
-                cerr << "....Newton iteration #" << newtonIter << " chisq " << newChisq
-                     << " / " << dof << " in time " << timer << " sec" << endl;
+                cerr << "....Newton iteration #" << newtonIter << " chisq " << std::setprecision(20) << newChisq
+                     << " / " << dof << endl;
             }
             timer.reset();
             timer.start();

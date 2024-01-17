@@ -297,9 +297,10 @@ void WCSFit::setupMaps(astrometry::YAMLCollector &inputYAML, std::string fixMaps
 
   for (auto extnSet : initializeOrder) {
       // Fit set of extensions to initialize defaulted map(s)
-      std::set<Extension *> defaultedExtensions;
+      std::vector<Extension *> defaultedExtensions;
+      defaultedExtensions.reserve(extnSet.size());
       for (auto iextn : extnSet) {
-          defaultedExtensions.insert(extensions[iextn].get());
+          defaultedExtensions.push_back(extensions[iextn].get());
           initializedExtensions.insert(iextn);
       }
       fitDefaulted(mapCollection, defaultedExtensions, instruments, exposures, verbose >= 2);
@@ -312,7 +313,7 @@ void WCSFit::setupMaps(astrometry::YAMLCollector &inputYAML, std::string fixMaps
   for (int iextn = 0; iextn < extensions.size(); iextn++) {
       // Skip extensions that don't exist or are already initialized
       if (!extensions[iextn] || initializedExtensions.count(iextn)) continue;
-      std::set<Extension *> defaultedExtensions = {extensions[iextn].get()};
+      std::vector<Extension *> defaultedExtensions = {extensions[iextn].get()};
       fitDefaulted(mapCollection, defaultedExtensions, instruments, exposures, verbose >= 2);
       initializedExtensions.insert(iextn);
   }

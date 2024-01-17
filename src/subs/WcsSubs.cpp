@@ -11,7 +11,7 @@ using namespace astrometry;
 
 std::mt19937 g(12345);
 
-void fitDefaulted(PixelMapCollection &pmc, set<Extension *> extensions,
+void fitDefaulted(PixelMapCollection &pmc, vector<Extension *> extensions,
                   const vector<unique_ptr<Instrument>> &instruments,
                   const vector<unique_ptr<Exposure>> &exposures, bool logging) {
     // Make a new pixel map collection that will hold only the maps

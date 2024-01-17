@@ -20,7 +20,7 @@ typedef Astro::ColorExtension ColorExtension;
 // Function that will using starting WCS to fit all of the defaulted
 // maps used by the selected extensions.  Then will put the
 // initialized parameters back into the PMC and clear the defaulted flag.
-void fitDefaulted(astrometry::PixelMapCollection &pmc, set<Extension *> useThese,
+void fitDefaulted(astrometry::PixelMapCollection &pmc, vector<Extension *> useThese,
                   const vector<unique_ptr<Instrument>> &instruments,
                   const vector<unique_ptr<Exposure>> &exposures, bool logging = true);
 

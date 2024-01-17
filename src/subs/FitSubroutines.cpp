@@ -2875,7 +2875,7 @@ void Photo::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposu
     vector<int> ii;
     for (int i = 0; i < exposures.size(); i++)
         if (exposures[i]) ii.push_back(i);
-    std::sort(ii.begin(), ii.end(), NameSorter<Exposure>(exposures));
+    std::stable_sort(ii.begin(), ii.end(), NameSorter<Exposure>(exposures));
 
     // Print summary statistics for each exposure
     os << "#   Exposure           | " << Accum<Photo>::header() << endl;
@@ -2949,7 +2949,7 @@ void Astro::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposu
     vector<int> ii;
     for (int i = 0; i < exposures.size(); i++)
         if (exposures[i]) ii.push_back(i);
-    std::sort(ii.begin(), ii.end(), NameSorter<Exposure>(exposures));
+    std::stable_sort(ii.begin(), ii.end(), NameSorter<Exposure>(exposures));
 
     // Print summary statistics for each exposure
     os << "#   Exposure           | " << Accum<Astro>::header() << endl;

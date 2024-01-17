@@ -1186,7 +1186,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace, bool calcSVD) {
         timer.start();
         (*this)(p, oldChisq, beta, alpha);
         timer.stop();
-        if (reportToCerr) cerr << "..fitOnce alpha time " << timer << endl;
+        //if (reportToCerr) cerr << "..fitOnce alpha time " << timer << endl;
         timer.reset();
         timer.start();
 
@@ -1336,7 +1336,7 @@ double CoordAlign::fitOnce(bool reportToCerr, bool inPlace, bool calcSVD) {
             }
 
             timer.stop();
-            if (reportToCerr) cerr << "..solution time " << timer << endl;
+            //if (reportToCerr) cerr << "..solution time " << timer << endl;
             timer.reset();
             timer.start();
             DVector newP = p + beta;

@@ -719,7 +719,7 @@ def pixelPhase(fitsfile, device='', nphase=20, plotRMS=False, maxSigma=0.006,
 
         #Now select points from one of the extensions for this device.
         extn = data['Extension'][use]
-        use = np.in1d(extn, useExtensions)
+        use = np.isin(extn, useExtensions)
         print('points in: ', len(use), ' chosen ', np.count_nonzero(use))
         xPix = xPix[use]
         yPix = yPix[use]

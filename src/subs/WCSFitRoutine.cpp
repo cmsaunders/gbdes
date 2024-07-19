@@ -340,9 +340,6 @@ void WCSFit::setupMaps(astrometry::YAMLCollector &inputYAML, std::string fixMaps
   cout << "# Total number of free map elements " << mapCollection.nFreeMaps() << " with "
        << mapCollection.nParams() << " free parameters." << std::endl;
 
-  // Figure out which extensions' maps require a color entry to function
-  whoNeedsColor<Astro>(extensions);
-
   PROGRESS(2, Reprojecting startWcs);
 
   // Before reading objects, we want to set all starting WCS's to go into
@@ -366,7 +363,8 @@ void WCSFit::setObjects(int i, const map<std::string, std::vector<double>> &tabl
                         const std::string &idKey, const std::string &pmCovKey, const std::string &magKey,
                         const int &magKeyElement, const std::string &magErrKey, const int &magErrKeyElement,
                         const std::string &pmRaKey, const std::string &pmDecKey,
-                        const std::string &parallaxKey, const std::vector<std::vector<double>> &pmCov) {
+                        const std::string &parallaxKey, const std::vector<std::vector<double>> &pmCov,
+                        const double defaultColor) {
     img::FTable ff;
     for (auto x : tableMap) {
         ff.addColumn<double>(x.second, x.first);
@@ -377,7 +375,12 @@ void WCSFit::setObjects(int i, const map<std::string, std::vector<double>> &tabl
 
     readObjects_oneExtension<Astro>(exposures, i, ff, xKey, yKey, idKey, pmCovKey, xyErrKeys, magKey,
                                     magKeyElement, magErrKey, magErrKeyElement, pmRaKey, pmDecKey,
-                                    parallaxKey, extensions, fields.projections(), verbose, true);
+                                    parallaxKey, extensions, fields.projections(), verbose, true,
+                                    defaultColor);
+}
+
+void WCSFit::setColors(const std::vector<int> &matchIDs, const std::vector<double> &colors) {
+    readColors<Astro>(matches, matchIDs, colors);
 }
 
 void WCSFit::fit(double maxError, int minFitExposures, double reserveFraction, int randomNumberSeed,

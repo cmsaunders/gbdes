@@ -73,7 +73,10 @@ public:
                     const int &magKeyElement = 0, const std::string &magErrKey = "",
                     const int &magErrKeyElement = 0, const std::string &pmRaKey = "",
                     const std::string &pmDecKey = "", const std::string &parallaxKey = "",
-                    const std::vector<std::vector<double>> &fullCov = std::vector<std::vector<double>>(0.0));
+                    const std::vector<std::vector<double>> &fullCov = std::vector<std::vector<double>>(0.0),
+                    const double defaultColor = 0);
+
+    void setColors(const std::vector<int> &matchIDs, const std::vector<double> &colors);
 
     void reprojectWCSs();
 

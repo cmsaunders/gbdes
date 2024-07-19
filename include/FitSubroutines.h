@@ -435,7 +435,7 @@ void readObjects_oneExtension(const vector<unique_ptr<Exposure>> &exposures, int
                               const string &pmRaKey, const string &pmDecKey, const string &parallaxKey,
                               const vector<unique_ptr<typename S::Extension>> &extensions,
                               const vector<unique_ptr<astrometry::SphericalCoords>> &fieldProjections,
-                              bool logging, bool useRows);
+                              bool logging, bool useRows, const double defaultColor);
 
 // Read color information from files marked as holding such, insert into
 // relevant Matches.
@@ -443,6 +443,9 @@ template <class S>
 void readColors(const img::FTable &extensionTable,
                 const vector<unique_ptr<typename S::ColorExtension>> &colorExtensions,
                 bool logging = true);  // Progress reports
+
+template <class S>
+void readColors(typename S::MCat &matches, const std::vector<int> &matchIDs, const std::vector<double> &colors);
 
 // Find all matched Detections that exceed allowable error, then
 // delete them from their Match and delete the Detection.

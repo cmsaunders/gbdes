@@ -188,7 +188,9 @@ PYBIND11_MODULE(wcsfit, m) {
                  py::arg("yKey"), py::arg("xyErrKeys"), py::arg("idKey") = "", py::arg("pmCovKey") = "",
                  py::arg("magKey") = "", py::arg("magKeyElement") = 0, py::arg("magErrKey") = "",
                  py::arg("magErrKeyElement") = 0, py::arg("pmRaKey") = "", py::arg("pmDecKey") = "",
-                 py::arg("parallaxKey") = "", py::arg("pmCov") = std::vector<std::vector<double>>(0.0))
+                 py::arg("parallaxKey") = "", py::arg("pmCov") = std::vector<std::vector<double>>(0.0),
+                 py::arg("defaultColor") = 0)
+            .def("setColors", &WCSFit::setColors, py::arg("matchIDs"), py::arg("colors"))
             .def_readwrite("verbose", &WCSFit::verbose)
             .def("setMatches", &WCSFit::setMatches)
             .def("fit", &WCSFit::fit, py::arg("maxError") = 100., py::arg("minFitExposures") = 200,

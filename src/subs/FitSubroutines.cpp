@@ -1503,7 +1503,7 @@ void readObjects_oneExtension(const vector<unique_ptr<Exposure>> &exposures, int
                               const string &pmRaKey, const string &pmDecKey, const string &parallaxKey,
                               const vector<unique_ptr<typename S::Extension>> &extensions,
                               const vector<unique_ptr<astrometry::SphericalCoords>> &fieldProjections,
-                              bool logging, bool useRows) {
+                              bool logging, bool useRows, const double defaultColor) {
     // Relevant structures for this extension
     typename S::Extension &extn = *extensions[iext];
     Exposure &expo = *exposures[extn.exposure];
@@ -1555,6 +1555,7 @@ void readObjects_oneExtension(const vector<unique_ptr<Exposure>> &exposures, int
         typename S::Detection *d = pr->second;
         extn.keepers.erase(pr);
         d->map = sm;
+        S::setColor(*d, defaultColor);
         if (pmCatalog) {
             // Need to read data differently from catalog with
             // full proper motion solution.  Get PMDetection.
@@ -1648,6 +1649,23 @@ void readColors(const img::FTable &extensionTable,
                                      std::to_string(extn.keepers.begin()->first));
         }
     }  // end loop over catalogs to read
+}
+
+// Get color information from an input vector of colors matched to the current matches.
+template <class S>
+void readColors(typename S::MCat &matches,
+                const std::vector<int> &matchIDs,
+                const std::vector<double> &colors) {
+    vector<typename S::Match *> vmatches;
+    vmatches.reserve(matches.size());
+    for (auto const &m : matches) vmatches.push_back(m.get());
+
+    for (int iMatch = 0; iMatch < matchIDs.size(); iMatch++) {
+        int matchInd = matchIDs[iMatch];
+        typename S::Match *m = vmatches[matchInd];
+        double matchColor = colors[iMatch];
+        for (auto const &detptr : *m) S::setColor(*detptr, matchColor);
+    }
 }
 
 // Find all matched Detections that exceed allowable error, then
@@ -3008,7 +3026,7 @@ void Astro::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposu
             const string &pmDecKey, const string &parallaxKey,                                             \
             const vector<unique_ptr<typename AP::Extension>> &extensions,                                  \
             const vector<unique_ptr<astrometry::SphericalCoords>> &fieldProjections, bool logging,         \
-            bool useRows);                                                                                 \
+            bool useRows, const double defaultColor);                                                                                 \
     template void readMatches<AP>(const img::FTable &table, typename AP::MCat &matches,                    \
                                   const vector<unique_ptr<AP::Extension>> &extensions,                     \
                                   const vector<unique_ptr<AP::ColorExtension>> &colorExtensions,           \
@@ -3016,6 +3034,8 @@ void Astro::reportStatistics(const MCat &matches, const vector<unique_ptr<Exposu
     template void readColors<AP>(const img::FTable &extensionTable,                                        \
                                  const vector<unique_ptr<AP::ColorExtension>> &colorExtensions,            \
                                  bool logging);                                                            \
+    template void readColors<AP>(typename AP::MCat &matches, const std::vector<int> &matchIDs,             \
+                                 const std::vector<double> &colors);                                       \
     template void purgeNoisyDetections<AP>(double maxError, AP::MCat &matches,                             \
                                            const vector<unique_ptr<Exposure>> &exposures,                  \
                                            const vector<unique_ptr<AP::Extension>> &extensions);           \

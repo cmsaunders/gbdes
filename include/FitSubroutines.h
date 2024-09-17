@@ -74,6 +74,9 @@ struct Astro {
         vector<int> matchID;
         vector<long> catalogNumber;
         vector<long> objectNumber;
+        vector<std::string> exposureName;
+        vector<std::string> deviceName;
+        vector<double> mjd;
         vector<bool> clip;
         vector<bool> reserve;
         vector<bool> hasPM;
@@ -93,7 +96,10 @@ struct Astro {
         vector<double> chisq;
         vector<double> chisqExpected;
     };
-    static outputCatalog getOutputCatalog(const astrometry::MCat &matches);
+    static outputCatalog getOutputCatalog(const astrometry::MCat &matches,
+                                          const vector<unique_ptr<Instrument>> &instruments, 
+                                          const vector<unique_ptr<Exposure>> &exposures,
+                                          const vector<unique_ptr<Astro::Extension>> &extensions);
 
     struct PMCatalog {
         vector<int> pmMatchID;
@@ -124,11 +130,13 @@ struct Astro {
         vector<double> starPMy;
         vector<double> starParallax;
         vector<vector<double>> starInvCov;
+        vector<double> starEpoch;
     };
     // writes out the catalog of fit star positions (and proper motions if fit) as in `saveResults`, but
     // returns results as a map
     static StarCatalog getStarCatalog(const astrometry::MCat &matches,
-                                      vector<astrometry::SphericalCoords *> catalogProjections);
+                                      vector<astrometry::SphericalCoords *> catalogProjections,
+                                      vector<double> &extensionEpochs);
 
     static void reportStatistics(const astrometry::MCat &matches,
                                  const vector<unique_ptr<Exposure>> &exposures,

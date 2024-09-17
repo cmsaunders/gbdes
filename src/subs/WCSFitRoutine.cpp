@@ -543,7 +543,7 @@ void WCSFit::fit(double maxError, int minFitExposures, double reserveFraction, i
 }
 
 Astro::outputCatalog WCSFit::getOutputCatalog() {
-    return Astro::getOutputCatalog(matches);
+    return Astro::getOutputCatalog(matches, instruments, exposures, extensions);
 }
 
 Astro::PMCatalog WCSFit::getPMCatalog() {
@@ -553,16 +553,18 @@ Astro::PMCatalog WCSFit::getPMCatalog() {
 Astro::StarCatalog WCSFit::getStarCatalog() {
     // This routine needs an array of field projections for each extension
     std::vector<astrometry::SphericalCoords *> extensionProjections(extensions.size());
+    std::vector<double> extensionEpochs(extensions.size());
     for (int i = 0; i < extensions.size(); i++) {
         if (!extensions[i]) continue;
         int iExposure = extensions[i]->exposure;
         if (iExposure < 0 || !exposures[iExposure]) continue;
         int iField = exposures[iExposure]->field;
         extensionProjections[i] = fields.projections()[iField].get();
+        extensionEpochs[i] = fields.epochs()[iField];
     }
     PROGRESS(2, extensionProjections completed);
 
-    return Astro::getStarCatalog(matches, extensionProjections); 
+    return Astro::getStarCatalog(matches, extensionProjections, extensionEpochs); 
 }
 
 void WCSFit::saveResults(std::string outWcs, std::string outCatalog, std::string starCatalog) {

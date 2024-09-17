@@ -207,6 +207,9 @@ PYBIND11_MODULE(wcsfit, m) {
                     result["matchID"] = vectorToNumpy(outCat.matchID);
                     result["catalogNumber"] = vectorToNumpy(outCat.catalogNumber);
                     result["objectNumber"] = vectorToNumpy(outCat.objectNumber);
+                    result["exposureName"] = outCat.exposureName;
+                    result["deviceName"] = outCat.deviceName;
+                    result["mjd"] = vectorToNumpy(outCat.mjd);
                     result["clip"] = vectorToNumpy(outCat.clip);
                     result["reserve"] = vectorToNumpy(outCat.reserve);
                     result["hasPM"] = vectorToNumpy(outCat.hasPM);
@@ -253,11 +256,17 @@ PYBIND11_MODULE(wcsfit, m) {
                     result["starDOF"] = vectorToNumpy(starCat.starDOF);
                     result["starChisq"] = vectorToNumpy(starCat.starChisq);
                     result["starX"] = vectorToNumpy(starCat.starX);
+                    result["ra"] = vectorToNumpy(starCat.starX);
                     result["starY"] = vectorToNumpy(starCat.starY);
+                    result["dec"] = vectorToNumpy(starCat.starY);
                     result["starPMx"] = vectorToNumpy(starCat.starPMx);
+                    result["pm_ra"] = vectorToNumpy(starCat.starPMx);
                     result["starPMy"] = vectorToNumpy(starCat.starPMy);
+                    result["pm_dec"] = vectorToNumpy(starCat.starPMy);
                     result["starParallax"] = vectorToNumpy(starCat.starParallax);
+                    result["parallax"] = vectorToNumpy(starCat.starParallax);
                     result["starInvCov"] = vectorToNumpy(starCat.starInvCov);
+                    result["starEpoch"] = vectorToNumpy(starCat.starEpoch);
                     return result;
             })
             .def("getModelCovariance", &WCSFit::getModelCovariance)

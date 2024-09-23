@@ -2415,7 +2415,10 @@ void Astro::saveResults(const astrometry::MCat &matches, string outCatalog, stri
     }      // End starCatalog making
 }
 
-Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches) {
+Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches,
+                                             const vector<unique_ptr<Instrument>> &instruments,
+                                             const vector<unique_ptr<Exposure>> &exposures,
+                                             const vector<unique_ptr<Astro::Extension>> &extensions) {
 
     // TODO: probably don't need vmatches
     // Make a vector of match pointers so we can use OpenMP
@@ -2426,6 +2429,9 @@ Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches) {
     vector<int> matchID;
     vector<long> catalogNumber;
     vector<long> objectNumber;
+    vector<std::string> exposureName;
+    vector<std::string> deviceName;
+    vector<double> mjd;
     vector<bool> clip;
     vector<bool> reserve;
     vector<bool> hasPM;  // Was this input a full PM estimate?
@@ -2475,10 +2481,21 @@ Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches) {
             // Set color if this is the first detection to have one
             if (matchColor == astrometry::NODATA && detptr->color != astrometry::NODATA)
                 matchColor = detptr->color;
+
+            int exposureNumber = extensions[detptr->catalogNumber]->exposure;
+            int deviceNumber = extensions[detptr->catalogNumber]->device;
+            // Device name "-1" will be used for the reference catalog.
+            std::string device = "-1";
+            if (deviceNumber >= 0) {
+                device = instruments[exposures[exposureNumber]->instrument]->deviceNames.nameOf(deviceNumber);
+            }
             // Save some basics:
             matchID.push_back(iMatch);
             catalogNumber.push_back(detptr->catalogNumber);
             objectNumber.push_back(detptr->objectNumber);
+            exposureName.push_back(exposures[exposureNumber]->name);
+            deviceName.push_back(device);
+            mjd.push_back(exposures[exposureNumber]->mjd);
             clip.push_back(detptr->isClipped);
             reserve.push_back(m->getReserved());
             hasPM.push_back((bool)pmDetPtr);
@@ -2562,6 +2579,9 @@ Astro::outputCatalog Astro::getOutputCatalog(const astrometry::MCat &matches) {
     outCat.matchID = matchID;
     outCat.catalogNumber = catalogNumber;
     outCat.objectNumber = objectNumber;
+    outCat.exposureName = exposureName;
+    outCat.deviceName = deviceName;
+    outCat.mjd = mjd;
     outCat.clip = clip;
     outCat.reserve = reserve;
     outCat.hasPM = hasPM;
@@ -2671,7 +2691,8 @@ Astro::PMCatalog Astro::getPMCatalog(const astrometry::MCat &matches) {
 }
 
 Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
-                                         vector<astrometry::SphericalCoords *> catalogProjections) {
+                                         vector<astrometry::SphericalCoords *> catalogProjections,
+                                         vector<double> &extensionEpochs) {
     // Make a map holding the stellar catalog info for all PM matches
     // Sweep through all matches recording info for the PM ones.
     // These are quantities we will want to put into our output PM catalog
@@ -2689,6 +2710,7 @@ Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
     vector<double> starPMy;
     vector<double> starParallax;
     vector<vector<double>> starInvCov;  // flattened Fisher matrix of PM
+    vector<double> starEpoch;    // Epoch to which the star position corresponds
 
     // Make vector of units conversions to I/O units
     vector<float> units(5);
@@ -2757,6 +2779,14 @@ Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
         }
         starDOF.push_back(dof);
         starChisq.push_back(chisqThis);
+
+        double epoch;
+        for (auto const &detptr : *m) {
+            epoch = extensionEpochs[detptr->catalogNumber];
+            if (epoch) break;
+        }
+        starEpoch.push_back(epoch);
+
         if (pmm) {
             // Save the solution in a table
             auto pm = pmm->getPM();
@@ -2837,6 +2867,7 @@ Astro::StarCatalog Astro::getStarCatalog(const astrometry::MCat &matches,
     starCat.starPMy = starPMy;
     starCat.starParallax = starParallax;
     starCat.starInvCov = starInvCov;
+    starCat.starEpoch = starEpoch;
     return starCat;
 }
 

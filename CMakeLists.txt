@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # set the project name
 project(gbdes)
+enable_testing()
 
 include(CheckLibraryExists)
 
@@ -73,4 +74,3 @@ target_link_libraries(WCSFit PUBLIC gbdes)
 install(TARGETS WCSFit DESTINATION bin)
 
 add_subdirectory(pydir)
-

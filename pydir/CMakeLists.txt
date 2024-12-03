@@ -12,4 +12,19 @@ target_link_libraries(wcsfit PUBLIC gbdes)
 
 target_include_directories(wcsfit PUBLIC ${PROJECT_SOURCE_DIR}/include ${ASTSHIM_INCLUDES})
 
+# add import test
+add_test(NAME PythonImportTest
+         COMMAND ${Python3_EXECUTABLE} -c "import wcsfit" && printenv)
+
+# make sure we don't use the newly build shlib for testing
+set_tests_properties(PythonImportTest PROPERTIES
+                     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+                     ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/pydir")
+
+add_custom_command(TARGET wcsfit POST_BUILD
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Running import test after build"
+)
+
 install(TARGETS wcsfit DESTINATION "${PROJECT_SOURCE_DIR}")

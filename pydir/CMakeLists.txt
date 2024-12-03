@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.20)
 project(gbdes_py)
 
-find_package(pybind11 REQUIRED)
+find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter Development)
+find_package(pybind11 CONFIG)
 
 set(PYTHON_MODULE_EXTENSION ".so")
 

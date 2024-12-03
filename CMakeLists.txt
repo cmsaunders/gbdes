@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.20)
 
 # set the project name
 project(gbdes)
@@ -18,27 +18,27 @@ find_library(FFTW3 fftw3 REQUIRED)
 
 # find astshim library using EUPS package environent variable as hint
 find_library(ASTSHIM_LIBRARIES
-astshim REQUIRED
-HINTS $ENV{ASTSHIM_DIR}/lib
+        astshim REQUIRED
+        HINTS $ENV{ASTSHIM_DIR}/lib
 )
 #find astshim include directory
 find_path(
-ASTSHIM_INCLUDES
-astshim.h REQUIRED
-HINTS $ENV{ASTSHIM_DIR}/include
+        ASTSHIM_INCLUDES
+        astshim.h REQUIRED
+        HINTS $ENV{ASTSHIM_DIR}/include
 )
 
 # TMV or Eigen must be available, but TMV is preferred
 find_package(TMV QUIET)
-if(TMV_FOUND)
+if (TMV_FOUND)
     add_compile_definitions(USE_TMV=TRUE)
-else()
+else ()
     find_package(Eigen3 QUIET)
-    if(NOT Eigen3_FOUND)
+    if (NOT Eigen3_FOUND)
         message(FATAL_ERROR "Either TMV or Eigen3 must be available")
-    endif()
+    endif ()
     add_compile_definitions(USE_EIGEN=TRUE)
-endif()   
+endif ()
 
 add_library(gbdes SHARED
         gbutil/src/BinomFact.cpp gbutil/src/Expressions.cpp gbutil/src/Lookup1d.cpp gbutil/src/Poly2d.cpp
@@ -55,7 +55,7 @@ add_library(gbdes SHARED
         src/subs/WCSFitRoutine.cpp src/subs/FitSubroutines.cpp src/subs/Match.cpp src/subs/ReadPhotoPriors.cpp
         src/subs/WCSFoFRoutine.cpp src/subs/DECamInfo.cpp src/subs/MapDegeneracies.cpp src/subs/PhotoMatch.cpp
         src/subs/TPVMap.cpp src/subs/WcsSubs.cpp
-        )
+)
 
 target_include_directories(gbdes PUBLIC
         ${PROJECT_SOURCE_DIR}/gbutil/include
@@ -64,9 +64,9 @@ target_include_directories(gbdes PUBLIC
         ${ASTSHIM_INCLUDES}
         ${PROJECT_SOURCE_DIR}/photometry/include
         ${PROJECT_SOURCE_DIR}/include
-        )
+)
 
-target_link_libraries(gbdes PUBLIC Eigen3::Eigen ${ASTSHIM_LIBRARIES} ${FFTW3} yaml-cpp cfitsio )
+target_link_libraries(gbdes PUBLIC Eigen3::Eigen ${ASTSHIM_LIBRARIES} ${FFTW3} yaml-cpp cfitsio)
 
 add_executable(WCSFit src/WCSFit.cpp)
 target_link_libraries(WCSFit PUBLIC gbdes)
